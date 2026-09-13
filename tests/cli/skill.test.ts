@@ -5,6 +5,7 @@ import { run } from '../../src/cli/run'
 import { EXIT } from '../../src/cli/exit'
 import type { Io } from '../../src/cli/io'
 import { makeRepo, type Repo } from '../helpers/makeRepo'
+import { BEGIN, END } from '../../src/skill/adapters'
 
 let repo: Repo | null = null
 afterEach(() => {
@@ -73,5 +74,45 @@ describe('pm skill install', () => {
     const i = io(repo.root, ['skill', 'install', '--target', 'claude', '--json'])
     expect(run(i)).toBe(EXIT.OK)
     expect(JSON.parse(i.outText()).data.written).toContain('.claude/skills/project-memory/SKILL.md')
+  })
+
+  test('refuses to touch AGENTS.md when a marker appears inside a documented example, leaving it byte-for-byte unchanged', () => {
+    repo = makeRepo([])
+    writeFileSync(join(repo.memRoot, 'SKILL.md'), '# protocol\n')
+    const before = [
+      '# House rules',
+      '',
+      'We document our AGENTS.md convention like this:',
+      '',
+      '```',
+      BEGIN,
+      '...',
+      END,
+      '```',
+      '',
+      BEGIN,
+      'v1',
+      END,
+      '',
+    ].join('\n')
+    const abs = join(repo.root, 'AGENTS.md')
+    writeFileSync(abs, before)
+
+    const i = io(repo.root, ['skill', 'install', '--target', 'agents'])
+    expect(run(i)).toBe(EXIT.CONFLICT)
+    expect(readFileSync(abs, 'utf8')).toBe(before)
+    expect(i.errText()).toContain('AGENTS.md')
+  })
+
+  test('refuses to touch AGENTS.md when END precedes BEGIN, leaving it byte-for-byte unchanged', () => {
+    repo = makeRepo([])
+    writeFileSync(join(repo.memRoot, 'SKILL.md'), '# protocol\n')
+    const before = `${END}\nstray\n${BEGIN}\n`
+    const abs = join(repo.root, 'AGENTS.md')
+    writeFileSync(abs, before)
+
+    const i = io(repo.root, ['skill', 'install', '--target', 'agents'])
+    expect(run(i)).toBe(EXIT.CONFLICT)
+    expect(readFileSync(abs, 'utf8')).toBe(before)
   })
 })

@@ -1,5 +1,6 @@
 import { describe, expect, test } from 'bun:test'
 import { claudeAdapter, agentsBlock, spliceBlock, BEGIN, END } from '../../src/skill/adapters'
+import { CliError, EXIT } from '../../src/cli/exit'
 
 const CANONICAL = '# project-memory protocol\n\nRun `pm context` before planning.\n'
 
@@ -50,5 +51,61 @@ describe('spliceBlock', () => {
 
   test('never emits CRLF', () => {
     expect(spliceBlock('# Mine\r\n\r\nKeep me.\r\n', agentsBlock(CANONICAL))).not.toContain('\r')
+  })
+
+  test('refuses to splice when a marker appears inside documentation, e.g. a fenced example', () => {
+    const withExample = [
+      '# Mine',
+      '',
+      'Our AGENTS.md integrates project-memory like so:',
+      '',
+      '```',
+      BEGIN,
+      '...',
+      END,
+      '```',
+      '',
+      BEGIN,
+      'v1',
+      END,
+      '',
+    ].join('\n')
+
+    let caught: unknown = null
+    try {
+      spliceBlock(withExample, agentsBlock('v2\n'))
+    } catch (err) {
+      caught = err
+    }
+    expect(caught).toBeInstanceOf(CliError)
+    expect((caught as CliError).exit).toBe(EXIT.CONFLICT)
+    expect((caught as CliError).message).toContain('2')
+  })
+
+  test('refuses to splice when END appears before BEGIN', () => {
+    const backwards = `${END}\nleftover\n${BEGIN}\n`
+    let caught: unknown = null
+    try {
+      spliceBlock(backwards, agentsBlock(CANONICAL))
+    } catch (err) {
+      caught = err
+    }
+    expect(caught).toBeInstanceOf(CliError)
+    expect((caught as CliError).exit).toBe(EXIT.CONFLICT)
+  })
+
+  test('refuses to splice when only one of BEGIN/END is present', () => {
+    expect(() => spliceBlock(`# Mine\n${BEGIN}\n`, agentsBlock(CANONICAL))).toThrow(CliError)
+    expect(() => spliceBlock(`# Mine\n${END}\n`, agentsBlock(CANONICAL))).toThrow(CliError)
+  })
+
+  test('names the file in the error message so the user knows where to look', () => {
+    let caught: unknown = null
+    try {
+      spliceBlock(`${BEGIN}\n${BEGIN}\n${END}\n`, agentsBlock(CANONICAL), 'AGENTS.md')
+    } catch (err) {
+      caught = err
+    }
+    expect((caught as CliError).message).toContain('AGENTS.md')
   })
 })
