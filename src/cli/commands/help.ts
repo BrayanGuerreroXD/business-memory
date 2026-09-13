@@ -20,7 +20,7 @@ export const SPECS: CommandSpec[] = [
   { name: 'search', summary: 'rank documents by text relevance', usage: 'pm search <query> [--type <t>] [--limit <n>]', flags: ['--type', '--limit', '--all'] },
   { name: 'context', summary: 'return the relevant business context for a topic', usage: 'pm context <query> [--max-tokens <n>] [--no-expand] [--all]', flags: ['--max-tokens', '--limit', '--no-expand', '--all'] },
   { name: 'validate', summary: 'check frontmatter, ids, links and supersession', usage: 'pm validate', flags: [] },
-  { name: 'index', summary: 'rebuild the cache (normally automatic)', usage: 'pm index --force', flags: ['--force'] },
+  { name: 'index', summary: 'rebuild the cache (normally automatic)', usage: 'pm index [--force]', flags: ['--force'] },
   { name: 'skill', summary: 'install the agent protocol', usage: 'pm skill install --target <claude|agents>', flags: ['--target'] },
 ]
 

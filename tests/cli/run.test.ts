@@ -92,6 +92,14 @@ describe('run', () => {
     expect(parsed.data.commands.map((c: { name: string }) => c.name)).toContain('context')
   })
 
+  test('help documents pm index --force as optional, not required', () => {
+    const io = fakeIo(['help', '--json'])
+    run(io)
+    const parsed = JSON.parse(io.outText())
+    const spec = parsed.data.commands.find((c: { name: string }) => c.name === 'index')
+    expect(spec.usage).toBe('pm index [--force]')
+  })
+
   test('a CliError thrown by a command never leaks a stack trace to stdout', () => {
     const key = '__cli_error__'
     COMMANDS[key] = (_ctx): number => {
