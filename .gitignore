@@ -1,0 +1,22 @@
+# Documentacion de trabajo local (specs, planes de implementacion)
+docs/
+
+# Dependencias y build
+node_modules/
+dist/
+build/
+*.tsbuildinfo
+
+# Entorno
+.env
+.env.*
+!.env.example
+
+# Cache de herramientas
+.bun/
+coverage/
+*.log
+
+# Sistema operativo
+.DS_Store
+Thumbs.db
