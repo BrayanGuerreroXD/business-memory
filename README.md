@@ -18,10 +18,15 @@ single bundled file.
 ```sh
 pm init                              # create .project-memory/ in this repo
 pm skill install --target claude     # teach the agent the protocol
-pm add rule --stub                   # write a rule as a stub, then fill it in
+
+# write a rule as a stub: pm prints the path, you fill the body in
+pm add rule --title "Refunds require manager approval over $500" --source "support ticket #4821" --stub
+
 pm context "refund approval"         # ask: what do I need to know about this?
 pm validate                          # check frontmatter, ids, links, supersession
 ```
+
+`--title` is required, and `--source` is required for rules and decisions.
 
 ## Example: `pm context`
 
