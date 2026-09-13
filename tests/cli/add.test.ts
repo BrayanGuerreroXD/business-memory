@@ -5,6 +5,7 @@ import { run } from '../../src/cli/run'
 import { EXIT } from '../../src/cli/exit'
 import type { Io } from '../../src/cli/io'
 import { makeRepo, type Repo } from '../helpers/makeRepo'
+import { SIMILAR_THRESHOLD } from '../../src/domain/constants'
 
 let repo: Repo | null = null
 afterEach(() => {
@@ -132,5 +133,28 @@ describe('pm add with a boolean flag before the type', () => {
     const parsed = JSON.parse(i.outText())
     expect(parsed.ok).toBe(true)
     expect(parsed.data.id).toBe('rule-refund-window')
+  })
+})
+
+describe('the dedupe score is a ratio, on the scale of the documented threshold', () => {
+  test('a near-duplicate reports a score comparable to 0.45, not a raw score', () => {
+    repo = makeRepo([{ id: 'rule-payment-method-persistence', type: 'rule', title: 'Payment method persistence' }])
+    const i = io(repo.root, ['add', 'rule', '--title', 'Payment method persistence', '--source', 's', '--stub', '--json'])
+    expect(run(i)).toBe(EXIT.CONFLICT)
+    const score = JSON.parse(i.outText()).error.similar[0].score
+    expect(score).toBeGreaterThanOrEqual(SIMILAR_THRESHOLD)
+    expect(score).toBeLessThan(3)
+  })
+
+  test('every candidate reported is at or above the threshold', () => {
+    repo = makeRepo([
+      { id: 'rule-payment-method-persistence', type: 'rule', title: 'Payment method persistence' },
+      { id: 'rule-payment-method-order', type: 'rule', title: 'Payment method order' },
+    ])
+    const i = io(repo.root, ['add', 'rule', '--title', 'Payment method persistence', '--source', 's', '--stub', '--json'])
+    expect(run(i)).toBe(EXIT.CONFLICT)
+    for (const s of JSON.parse(i.outText()).error.similar) {
+      expect(s.score).toBeGreaterThanOrEqual(SIMILAR_THRESHOLD)
+    }
   })
 })
