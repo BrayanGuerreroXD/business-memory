@@ -63,6 +63,10 @@ export function makeCtx(io: Io, args: ParsedArgs): Ctx {
         if (cachedIndex.storage !== 'disk') {
           io.stderr(`warning: ${CACHE_WARNING[cachedIndex.storage]}\n`)
         }
+        // A document the indexer had to skip is missing from every answer; say
+        // so on stderr rather than letting it disappear until `pm validate`.
+        for (const w of cachedIndex.warnings) io.stderr(`warning: ${w}\n`)
+        if (cachedIndex.warnings.length > 0) io.stderr('hint: pm validate\n')
       }
       return cachedIndex
     },

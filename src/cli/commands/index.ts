@@ -21,7 +21,7 @@ export function indexCommand(ctx: Ctx): number {
     const index = loadIndex(memRoot)
     storage = index.storage
     count = Object.keys(index.file.docs).length
-    warnings = []
+    warnings = index.warnings
   }
 
   const mode = force ? 'force' : 'incremental'

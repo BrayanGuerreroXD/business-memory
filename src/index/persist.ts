@@ -52,7 +52,7 @@ export function loadIndex(memRoot: string): MemoryIndex {
     (existsSync(primary) ? readCache(primary) : null) ??
     (existsSync(fallback) ? readCache(fallback) : null)
 
-  const { file } = buildIndex(memRoot, previous)
+  const { file, warnings } = buildIndex(memRoot, previous)
 
   const unchanged =
     previous !== null &&
@@ -63,5 +63,5 @@ export function loadIndex(memRoot: string): MemoryIndex {
 
   const storage = unchanged && existsSync(primary) ? 'disk' : saveIndex(memRoot, file)
 
-  return { file, backlinks: buildBacklinks(file), storage }
+  return { file, backlinks: buildBacklinks(file), storage, warnings }
 }

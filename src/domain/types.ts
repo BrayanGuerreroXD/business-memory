@@ -39,6 +39,8 @@ export interface MemoryIndex {
   file: IndexFile
   backlinks: Map<string, Set<string>>
   storage: 'disk' | 'tmp' | 'memory'
+  /** Documents the indexer had to skip, in the order it found them. */
+  warnings: string[]
 }
 
 export interface ScoredDoc {

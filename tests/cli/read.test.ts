@@ -211,13 +211,49 @@ describe('pm index', () => {
     expect(i.outText()).not.toContain('force')
   })
 
-  test('plain index does not resurface warnings the way --force does', () => {
+  test('an incremental index reports the documents it had to skip, like --force', () => {
     repo = makeRepo(FIXTURE)
     const r = repo
     require('node:fs').writeFileSync(join(r.memRoot, 'rules', 'broken.md'), '# no frontmatter\n')
     const i = io(r.root, ['index'])
     expect(run(i)).toBe(EXIT.OK)
-    expect(i.outText() + i.errText()).not.toContain('broken.md')
+    expect(i.errText()).toContain('broken.md')
+    expect(i.outText()).not.toContain('broken.md')
+  })
+
+  test('an incremental index carries the warnings into --json too', () => {
+    repo = makeRepo(FIXTURE)
+    const r = repo
+    require('node:fs').writeFileSync(join(r.memRoot, 'rules', 'broken.md'), '# no frontmatter\n')
+    const i = io(r.root, ['index', '--json'])
+    expect(run(i)).toBe(EXIT.OK)
+    const parsed = JSON.parse(i.outText())
+    expect(parsed.data.mode).toBe('incremental')
+    expect(parsed.data.warnings.join(' ')).toContain('broken.md')
+  })
+
+  test('a read command mentions a skipped document on stderr, never on stdout', () => {
+    repo = makeRepo(FIXTURE)
+    const r = repo
+    require('node:fs').writeFileSync(join(r.memRoot, 'rules', 'broken.md'), '# no frontmatter\n')
+    const i = io(r.root, ['list'])
+    expect(run(i)).toBe(EXIT.OK)
+    expect(i.outText()).toContain('rule-open-claims-restriction')
+    expect(i.outText()).not.toContain('broken.md')
+    expect(i.errText()).toContain('broken.md')
+    expect(i.errText()).toContain('pm validate')
+  })
+
+  test('a read command in --json keeps the envelope free of warnings', () => {
+    repo = makeRepo(FIXTURE)
+    const r = repo
+    require('node:fs').writeFileSync(join(r.memRoot, 'rules', 'broken.md'), '# no frontmatter\n')
+    const i = io(r.root, ['list', '--json'])
+    expect(run(i)).toBe(EXIT.OK)
+    const parsed = JSON.parse(i.outText())
+    expect(parsed.ok).toBe(true)
+    expect(i.outText()).not.toContain('broken.md')
+    expect(i.errText()).toContain('broken.md')
   })
 
   test('plain index reports its mode in --json too', () => {

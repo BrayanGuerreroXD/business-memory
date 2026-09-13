@@ -8,7 +8,11 @@ import { okEnvelope } from '../../render/json'
 export function validateCommand(ctx: Ctx): number {
   const memRoot = ctx.memRoot()
   const { file, warnings } = buildIndex(memRoot, null)
-  const findings = validateIndex({ file, backlinks: buildBacklinks(file), storage: 'memory' }, warnings, ctx.io.now)
+  const findings = validateIndex(
+    { file, backlinks: buildBacklinks(file), storage: 'memory', warnings },
+    warnings,
+    ctx.io.now,
+  )
 
   const errors = findings.filter((f) => f.level === 'error')
   const warns = findings.filter((f) => f.level === 'warning')
