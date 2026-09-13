@@ -158,9 +158,15 @@ describe('pm context', () => {
 
   test('honours --max-tokens', () => {
     repo = makeRepo(FIXTURE)
-    const i = io(repo.root, ['context', 'cancellation', '--max-tokens', '40'])
-    run(i)
-    expect(i.outText()).toContain('truncated')
+    const full = io(repo.root, ['context', 'cancellation'])
+    run(full)
+    const limited = io(repo.root, ['context', 'cancellation', '--max-tokens', '40'])
+    run(limited)
+
+    const truncatedMatch = limited.outText().match(/(\d+) truncated/)
+    expect(truncatedMatch).not.toBeNull()
+    expect(Number(truncatedMatch?.[1])).toBeGreaterThan(0)
+    expect(limited.outText().length).toBeLessThan(full.outText().length)
   })
 
   test('--no-expand drops the graph', () => {
