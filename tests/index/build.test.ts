@@ -100,6 +100,42 @@ describe('buildIndex', () => {
       "rules/rule-a.md: duplicate id 'rule-a' (also in rules/rule-a-dup.md)",
     ])
   })
+
+  test('detects a duplicate id when the existing entry is a cache hit and the new one is freshly parsed', () => {
+    // 'rules/rule-a.md' sorts BEFORE 'rules/zzz-new.md', so the cache-hit
+    // branch runs first and claims the id; the fresh-parse branch then
+    // finds the id taken and must warn instead of overwriting.
+    repo = makeRepo([{ id: 'rule-a', type: 'rule', title: 'Rule A' }])
+    const previous = buildIndex(repo.memRoot, null).file
+    writeFileSync(
+      join(repo.memRoot, 'rules', 'zzz-new.md'),
+      '---\nid: rule-a\ntype: rule\ntitle: Rule A New\ntags: []\nsource: s\nstatus: active\nsuperseded_by: null\nlinks: []\nrefs: []\ncreated: 2026-01-01\n---\n\nnew body\n',
+    )
+    const { file, warnings } = buildIndex(repo.memRoot, previous)
+    expect(Object.keys(file.docs)).toEqual(['rule-a'])
+    expect(file.docs['rule-a']?.path).toBe('rules/rule-a.md')
+    expect(warnings).toEqual([
+      "rules/zzz-new.md: duplicate id 'rule-a' (also in rules/rule-a.md)",
+    ])
+  })
+
+  test('detects a duplicate id when the freshly parsed entry claims the id first and the cache hit follows', () => {
+    // 'rules/aaa-new.md' sorts BEFORE 'rules/rule-a.md', so the fresh-parse
+    // branch runs first and claims the id; the cache-hit branch then finds
+    // the id taken and must warn instead of overwriting.
+    repo = makeRepo([{ id: 'rule-a', type: 'rule', title: 'Rule A' }])
+    const previous = buildIndex(repo.memRoot, null).file
+    writeFileSync(
+      join(repo.memRoot, 'rules', 'aaa-new.md'),
+      '---\nid: rule-a\ntype: rule\ntitle: Rule A New\ntags: []\nsource: s\nstatus: active\nsuperseded_by: null\nlinks: []\nrefs: []\ncreated: 2026-01-01\n---\n\nnew body\n',
+    )
+    const { file, warnings } = buildIndex(repo.memRoot, previous)
+    expect(Object.keys(file.docs)).toEqual(['rule-a'])
+    expect(file.docs['rule-a']?.path).toBe('rules/aaa-new.md')
+    expect(warnings).toEqual([
+      "rules/rule-a.md: duplicate id 'rule-a' (also in rules/aaa-new.md)",
+    ])
+  })
 })
 
 describe('buildBacklinks', () => {
