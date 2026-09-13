@@ -3,7 +3,7 @@ docs/
 
 # Dependencias y build
 node_modules/
-dist/
+/dist/
 build/
 *.tsbuildinfo
 
@@ -20,3 +20,6 @@ coverage/
 # Sistema operativo
 .DS_Store
 Thumbs.db
+
+# SDD workspace (scratch)
+.superpowers/

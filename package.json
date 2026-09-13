@@ -1,0 +1,26 @@
+{
+  "name": "project-memory",
+  "version": "0.1.0",
+  "description": "Shared business memory for software projects and AI agents",
+  "type": "module",
+  "license": "GPL-3.0-or-later",
+  "engines": { "node": ">=20" },
+  "bin": {
+    "pm": "./dist/bin.js",
+    "project-memory": "./dist/bin.js"
+  },
+  "files": ["dist"],
+  "scripts": {
+    "test": "bun test",
+    "typecheck": "tsc --noEmit",
+    "build": "bun build src/bin.ts --target=node --minify --outfile dist/bin.js",
+    "check:node-compat": "bun run scripts/check-bundle.ts",
+    "check:startup": "bun run scripts/check-startup.ts",
+    "prepublishOnly": "bun run typecheck && bun test && bun run check:node-compat && bun run build"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "bun-types": "latest",
+    "typescript": "^5.6.0"
+  }
+}
