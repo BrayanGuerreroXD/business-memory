@@ -1,10 +1,9 @@
-import { existsSync, mkdirSync, readFileSync } from 'node:fs'
 import { createHash } from 'node:crypto'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import type { IndexFile, MemoryIndex } from '../domain/types'
 import { INDEX_FILE, INDEX_VERSION } from '../domain/constants'
-import { atomicWrite } from '../store/fs'
+import { atomicWrite, readText } from '../store/fs'
 import { buildIndex } from './build'
 import { buildBacklinks } from './backlinks'
 
@@ -17,9 +16,10 @@ function fallbackPath(memRoot: string): string {
   return join(tmpdir(), 'project-memory-cache', key, INDEX_FILE)
 }
 
+/** Null when the cache is missing, unreadable, corrupt or of another version. */
 function readCache(abs: string): IndexFile | null {
   try {
-    const parsed = JSON.parse(readFileSync(abs, 'utf8')) as IndexFile
+    const parsed = JSON.parse(readText(abs)) as IndexFile
     if (parsed.version !== INDEX_VERSION || typeof parsed.docs !== 'object') return null
     return parsed
   } catch {
@@ -36,9 +36,7 @@ export function saveIndex(memRoot: string, file: IndexFile): 'disk' | 'tmp' | 'm
     /* fall through */
   }
   try {
-    const fb = fallbackPath(memRoot)
-    mkdirSync(join(fb, '..'), { recursive: true })
-    atomicWrite(fb, json)
+    atomicWrite(fallbackPath(memRoot), json)
     return 'tmp'
   } catch {
     return 'memory'
@@ -46,13 +44,10 @@ export function saveIndex(memRoot: string, file: IndexFile): 'disk' | 'tmp' | 'm
 }
 
 export function loadIndex(memRoot: string): MemoryIndex {
-  const primary = indexPath(memRoot)
-  const fallback = fallbackPath(memRoot)
-  const previous =
-    (existsSync(primary) ? readCache(primary) : null) ??
-    (existsSync(fallback) ? readCache(fallback) : null)
+  const primary = readCache(indexPath(memRoot))
+  const previous = primary ?? readCache(fallbackPath(memRoot))
 
-  const { file } = buildIndex(memRoot, previous)
+  const { file, warnings } = buildIndex(memRoot, previous)
 
   const unchanged =
     previous !== null &&
@@ -61,7 +56,7 @@ export function loadIndex(memRoot: string): MemoryIndex {
       (d) => previous.docs[d.id]?.hash === d.hash && previous.docs[d.id]?.path === d.path,
     )
 
-  const storage = unchanged && existsSync(primary) ? 'disk' : saveIndex(memRoot, file)
+  const storage = unchanged && primary !== null ? 'disk' : saveIndex(memRoot, file)
 
-  return { file, backlinks: buildBacklinks(file), storage }
+  return { file, backlinks: buildBacklinks(file), storage, warnings }
 }

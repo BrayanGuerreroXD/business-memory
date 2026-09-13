@@ -1,9 +1,8 @@
-import { existsSync } from 'node:fs'
 import { join } from 'node:path'
 import type { Ctx } from '../context'
 import { EXIT } from '../exit'
 import { INDEX_FILE, MEMORY_DIR, SKILL_FILE, TYPE_DIR } from '../../domain/constants'
-import { atomicWrite, ensureDir } from '../../store/fs'
+import { atomicWrite, ensureDir, exists } from '../../store/fs'
 import { toPosix } from '../../store/paths'
 import { okEnvelope } from '../../render/json'
 import { SKILL_MARKDOWN } from '../../skill/content'
@@ -18,7 +17,7 @@ export function initCommand(ctx: Ctx): number {
 
   const write = (rel: string, content: string, overwritable: boolean): void => {
     const abs = join(mem, rel)
-    if (existsSync(abs) && !(overwritable && force)) {
+    if (exists(abs) && !(overwritable && force)) {
       kept.push(`${MEMORY_DIR}/${toPosix(rel)}`)
       return
     }

@@ -1,9 +1,13 @@
-import { mkdirSync, readFileSync, readdirSync, renameSync, rmSync, writeFileSync } from 'node:fs'
+import { existsSync, mkdirSync, readFileSync, readdirSync, renameSync, rmSync, writeFileSync } from 'node:fs'
 import { dirname, join } from 'node:path'
 import { toPosix } from './paths'
 
 export function ensureDir(abs: string): void {
   mkdirSync(abs, { recursive: true })
+}
+
+export function exists(abs: string): boolean {
+  return existsSync(abs)
 }
 
 export function readText(abs: string): string {

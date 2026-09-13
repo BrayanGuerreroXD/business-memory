@@ -46,11 +46,14 @@ export function addCommand(ctx: Ctx): number {
   const index = ctx.requireIndex()
 
   if (!ctx.bool('force')) {
-    const threshold = SIMILAR_THRESHOLD * maxPossibleScore(tokenize(title))
-    const similar = scoreDocs(index, title, { type }).filter((s) => s.score >= threshold).slice(0, 3)
+    // The reported score is the ratio against a perfect match, the same scale
+    // as SIMILAR_THRESHOLD, so the number and the threshold are comparable.
+    const perfect = maxPossibleScore(tokenize(title))
+    const ratio = (score: number): number => (perfect === 0 ? 0 : score / perfect)
+    const similar = scoreDocs(index, title, { type }).filter((s) => ratio(s.score) >= SIMILAR_THRESHOLD).slice(0, 3)
     if (similar.length > 0) {
       throw new CliError('SIMILAR_DOCS', `${similar.length} similar doc(s) found`, EXIT.CONFLICT, {
-        similar: similar.map((s) => ({ id: s.doc.id, title: s.doc.title, score: Number(s.score.toFixed(2)) })),
+        similar: similar.map((s) => ({ id: s.doc.id, title: s.doc.title, score: Number(ratio(s.score).toFixed(2)) })),
         hint: `pm show ${similar[0]!.doc.id}  |  pm update ${similar[0]!.doc.id} --stub  |  pm add ... --force`,
       })
     }

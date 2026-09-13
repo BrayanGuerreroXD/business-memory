@@ -149,3 +149,61 @@ describe('run', () => {
     }
   })
 })
+
+describe('unknown flags', () => {
+  test('an unknown flag exits 2 and lists the valid flags for that subcommand', () => {
+    const io = fakeIo(['context', 'q', '--max-token', '40'])
+    expect(run(io)).toBe(EXIT.USAGE)
+    expect(io.errText()).toContain('UNKNOWN_FLAG')
+    expect(io.errText()).toContain("unknown flag '--max-token'")
+    expect(io.errText()).toContain('--max-tokens')
+    expect(io.errText()).toContain('--no-expand')
+  })
+
+  test('an unknown flag suggests the closest valid one', () => {
+    const io = fakeIo(['context', 'q', '--max-token', '40'])
+    run(io)
+    expect(io.errText()).toContain('did you mean: --max-tokens')
+  })
+
+  test('an unknown flag reports on stdout as an envelope in json mode', () => {
+    const io = fakeIo(['list', '--tpye', 'rule', '--json'])
+    expect(run(io)).toBe(EXIT.USAGE)
+    const parsed = JSON.parse(io.outText())
+    expect(parsed.ok).toBe(false)
+    expect(parsed.error.code).toBe('UNKNOWN_FLAG')
+    expect(parsed.error.validFlags).toContain('--type')
+  })
+
+  test('the global flags are accepted by every command', () => {
+    for (const name of ['init', 'add', 'update', 'show', 'path', 'list', 'search', 'context', 'validate', 'index', 'skill']) {
+      const io = fakeIo([name, '--no-color', '--help'])
+      expect(run(io)).toBe(EXIT.OK)
+      expect(io.outText()).toContain('Commands:')
+    }
+  })
+
+  test('-C is accepted everywhere and is not reported as unknown', () => {
+    const io = fakeIo(['validate', '-C', 'nowhere-at-all'])
+    expect(run(io)).toBe(EXIT.NO_MEMORY)
+    expect(io.errText()).not.toContain('UNKNOWN_FLAG')
+  })
+
+  test('a flag a command does declare is accepted', () => {
+    const io = fakeIo(['search', 'q', '--limit', '3'])
+    expect(run(io)).not.toBe(EXIT.USAGE)
+  })
+})
+
+describe('--yes is accepted everywhere and changes nothing', () => {
+  test('it is not reported as an unknown flag', () => {
+    const io = fakeIo(['list', '--yes', '--json'])
+    expect(run(io)).not.toBe(EXIT.USAGE)
+    expect(io.outText() + io.errText()).not.toContain('UNKNOWN_FLAG')
+  })
+
+  test('it does not swallow the positional after it', () => {
+    const io = fakeIo(['show', '--yes', 'rule-x'])
+    expect(run(io)).not.toBe(EXIT.USAGE)
+  })
+})

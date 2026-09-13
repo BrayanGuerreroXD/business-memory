@@ -211,13 +211,49 @@ describe('pm index', () => {
     expect(i.outText()).not.toContain('force')
   })
 
-  test('plain index does not resurface warnings the way --force does', () => {
+  test('an incremental index reports the documents it had to skip, like --force', () => {
     repo = makeRepo(FIXTURE)
     const r = repo
     require('node:fs').writeFileSync(join(r.memRoot, 'rules', 'broken.md'), '# no frontmatter\n')
     const i = io(r.root, ['index'])
     expect(run(i)).toBe(EXIT.OK)
-    expect(i.outText() + i.errText()).not.toContain('broken.md')
+    expect(i.errText()).toContain('broken.md')
+    expect(i.outText()).not.toContain('broken.md')
+  })
+
+  test('an incremental index carries the warnings into --json too', () => {
+    repo = makeRepo(FIXTURE)
+    const r = repo
+    require('node:fs').writeFileSync(join(r.memRoot, 'rules', 'broken.md'), '# no frontmatter\n')
+    const i = io(r.root, ['index', '--json'])
+    expect(run(i)).toBe(EXIT.OK)
+    const parsed = JSON.parse(i.outText())
+    expect(parsed.data.mode).toBe('incremental')
+    expect(parsed.data.warnings.join(' ')).toContain('broken.md')
+  })
+
+  test('a read command mentions a skipped document on stderr, never on stdout', () => {
+    repo = makeRepo(FIXTURE)
+    const r = repo
+    require('node:fs').writeFileSync(join(r.memRoot, 'rules', 'broken.md'), '# no frontmatter\n')
+    const i = io(r.root, ['list'])
+    expect(run(i)).toBe(EXIT.OK)
+    expect(i.outText()).toContain('rule-open-claims-restriction')
+    expect(i.outText()).not.toContain('broken.md')
+    expect(i.errText()).toContain('broken.md')
+    expect(i.errText()).toContain('pm validate')
+  })
+
+  test('a read command in --json keeps the envelope free of warnings', () => {
+    repo = makeRepo(FIXTURE)
+    const r = repo
+    require('node:fs').writeFileSync(join(r.memRoot, 'rules', 'broken.md'), '# no frontmatter\n')
+    const i = io(r.root, ['list', '--json'])
+    expect(run(i)).toBe(EXIT.OK)
+    const parsed = JSON.parse(i.outText())
+    expect(parsed.ok).toBe(true)
+    expect(i.outText()).not.toContain('broken.md')
+    expect(i.errText()).toContain('broken.md')
   })
 
   test('plain index reports its mode in --json too', () => {
@@ -256,5 +292,117 @@ describe('pm index', () => {
     const parsed = JSON.parse(i.outText())
     expect(parsed.ok).toBe(true)
     expect(parsed.data.mode).toBe('force')
+  })
+})
+
+describe('a boolean flag never swallows a positional', () => {
+  test('pm show --json <id> answers on stdout with the envelope', () => {
+    repo = makeRepo(FIXTURE)
+    const i = io(repo.root, ['show', '--json', 'rule-open-claims-restriction'])
+    expect(run(i)).toBe(EXIT.OK)
+    const parsed = JSON.parse(i.outText())
+    expect(parsed.ok).toBe(true)
+    expect(parsed.data.docs[0].id).toBe('rule-open-claims-restriction')
+  })
+
+  test('pm show --json <id> <id> keeps both ids', () => {
+    repo = makeRepo(FIXTURE)
+    const i = io(repo.root, ['show', 'rule-open-claims-restriction', '--json', 'dec-domain-validation'])
+    expect(run(i)).toBe(EXIT.OK)
+    const parsed = JSON.parse(i.outText())
+    expect(parsed.data.docs.map((d: { id: string }) => d.id)).toEqual([
+      'rule-open-claims-restriction',
+      'dec-domain-validation',
+    ])
+  })
+
+  test('pm show --json for a missing id still answers on stdout, never empty', () => {
+    repo = makeRepo(FIXTURE)
+    const i = io(repo.root, ['show', '--json', 'rule-x'])
+    expect(run(i)).toBe(EXIT.NOT_FOUND)
+    expect(i.outText().length).toBeGreaterThan(0)
+    const parsed = JSON.parse(i.outText())
+    expect(parsed.ok).toBe(false)
+    expect(parsed.error.code).toBe('NOT_FOUND')
+  })
+
+  test('pm context --json <query> keeps the query', () => {
+    repo = makeRepo(FIXTURE)
+    const i = io(repo.root, ['context', '--json', 'cancellation'])
+    expect(run(i)).toBe(EXIT.OK)
+    const parsed = JSON.parse(i.outText())
+    expect(parsed.data.query).toBe('cancellation')
+  })
+
+  test('pm context --no-expand before the query still drops the graph', () => {
+    repo = makeRepo(FIXTURE)
+    const i = io(repo.root, ['context', '--no-expand', 'cancellation'])
+    expect(run(i)).toBe(EXIT.OK)
+    expect(i.outText()).not.toContain('flow-policy-cancellation')
+  })
+
+  test('pm path --json <id> keeps the id', () => {
+    repo = makeRepo(FIXTURE)
+    const i = io(repo.root, ['path', '--json', 'rule-open-claims-restriction'])
+    expect(run(i)).toBe(EXIT.OK)
+    expect(JSON.parse(i.outText()).data.id).toBe('rule-open-claims-restriction')
+  })
+})
+
+describe('a degraded index cache', () => {
+  function blockCache(memRoot: string): void {
+    // A directory where index.json belongs makes every write to the primary
+    // cache fail, which is what a read-only checkout looks like from here.
+    require('node:fs').mkdirSync(join(memRoot, 'index.json'), { recursive: true })
+  }
+
+  test('pm list still answers, and warns on stderr only', () => {
+    repo = makeRepo(FIXTURE)
+    blockCache(repo.memRoot)
+    const i = io(repo.root, ['list'])
+    expect(run(i)).toBe(EXIT.OK)
+    expect(i.outText()).toContain('rule-open-claims-restriction')
+    expect(i.errText()).toContain('warning:')
+    expect(i.errText()).toContain('index cache')
+    expect(i.outText()).not.toContain('warning:')
+  })
+
+  test('pm show --json keeps the envelope clean and warns on stderr', () => {
+    repo = makeRepo(FIXTURE)
+    blockCache(repo.memRoot)
+    const i = io(repo.root, ['show', '--json', 'rule-open-claims-restriction'])
+    expect(run(i)).toBe(EXIT.OK)
+    const parsed = JSON.parse(i.outText())
+    expect(parsed.ok).toBe(true)
+    expect(i.errText()).toContain('warning:')
+  })
+
+  test('a healthy cache warns about nothing', () => {
+    repo = makeRepo(FIXTURE)
+    const i = io(repo.root, ['list'])
+    expect(run(i)).toBe(EXIT.OK)
+    expect(i.errText()).toBe('')
+  })
+})
+
+const BACKSLASH = String.fromCharCode(92)
+
+describe('printed paths are POSIX everywhere', () => {
+  test('pm path prints forward slashes and no backslash', () => {
+    repo = makeRepo(FIXTURE)
+    const i = io(repo.root, ['path', 'rule-open-claims-restriction'])
+    expect(run(i)).toBe(EXIT.OK)
+    const line = i.outText().trim()
+    expect(line.includes(BACKSLASH)).toBe(false)
+    expect(line.endsWith('.project-memory/rules/rule-open-claims-restriction.md')).toBe(true)
+  })
+
+  test('pm path --json reports the absolute path in POSIX form too', () => {
+    repo = makeRepo(FIXTURE)
+    const i = io(repo.root, ['path', '--json', 'rule-open-claims-restriction'])
+    run(i)
+    const parsed = JSON.parse(i.outText())
+    expect(parsed.data.absolute.includes(BACKSLASH)).toBe(false)
+    expect(parsed.data.path).toBe('rules/rule-open-claims-restriction.md')
   })
 })

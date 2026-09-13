@@ -1,3 +1,5 @@
+import { BOOLEAN_FLAGS } from './spec'
+
 export interface ParsedArgs {
   command: string | null
   positionals: string[]
@@ -21,9 +23,15 @@ export function parseArgv(argv: string[]): ParsedArgs {
     if (token.startsWith('--')) {
       const eq = token.indexOf('=')
       const name = eq === -1 ? token.slice(2) : token.slice(2, eq)
+      const isBoolean = BOOLEAN_FLAGS.has(name)
       let value: string | boolean
       if (eq !== -1) {
-        value = token.slice(eq + 1)
+        const raw = token.slice(eq + 1)
+        value = isBoolean ? raw !== 'false' && raw !== '0' : raw
+      } else if (isBoolean) {
+        // A boolean flag never consumes the next token: `pm show --json rule-x`
+        // must keep 'rule-x' as a positional.
+        value = true
       } else {
         const next = argv[i + 1]
         if (next !== undefined && !next.startsWith('--')) {

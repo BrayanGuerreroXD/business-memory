@@ -1,13 +1,12 @@
-import { existsSync } from 'node:fs'
 import { join } from 'node:path'
 import type { Ctx } from '../context'
 import { CliError, EXIT } from '../exit'
 import { SKILL_FILE } from '../../domain/constants'
-import { atomicWrite, readText } from '../../store/fs'
+import { atomicWrite, exists, readText } from '../../store/fs'
 import { toPosix } from '../../store/paths'
 import { okEnvelope } from '../../render/json'
 import { SKILL_MARKDOWN } from '../../skill/content'
-import { agentsBlock, claudeAdapter, spliceBlock, type SkillTarget } from '../../skill/adapters'
+import { BEGIN, END, agentsBlock, claudeAdapter, spliceBlock, type SkillTarget } from '../../skill/adapters'
 
 const TARGETS: SkillTarget[] = ['claude', 'agents']
 
@@ -32,7 +31,7 @@ export function skillCommand(ctx: Ctx): number {
 
   const projectRoot = ctx.requireRoot()
   const canonicalPath = join(ctx.memRoot(), SKILL_FILE)
-  const canonical = existsSync(canonicalPath) ? readText(canonicalPath) : SKILL_MARKDOWN
+  const canonical = exists(canonicalPath) ? readText(canonicalPath) : SKILL_MARKDOWN
 
   let written: string
   if (target === 'claude') {
@@ -40,10 +39,20 @@ export function skillCommand(ctx: Ctx): number {
     atomicWrite(join(projectRoot, ...adapter.path.split('/')), adapter.content)
     written = adapter.path
   } else {
-    const abs = join(projectRoot, 'AGENTS.md')
-    const existing = existsSync(abs) ? readText(abs) : ''
-    atomicWrite(abs, spliceBlock(existing, agentsBlock(canonical)))
-    written = 'AGENTS.md'
+    const label = 'AGENTS.md'
+    const abs = join(projectRoot, label)
+    const existing = exists(abs) ? readText(abs) : ''
+    const spliced = spliceBlock(existing, agentsBlock(canonical))
+    if (!spliced.ok) {
+      throw new CliError(
+        'CONFLICT',
+        `${label} has ${spliced.beginCount} '${BEGIN}' marker(s) and ${spliced.endCount} '${END}' marker(s); expected exactly one of each, BEGIN before END`,
+        EXIT.CONFLICT,
+        { hint: `remove the stray project-memory markers from ${label}, or edit the existing block by hand` },
+      )
+    }
+    atomicWrite(abs, spliced.text)
+    written = label
   }
 
   if (ctx.json) {
