@@ -57,7 +57,9 @@ export function loadIndex(memRoot: string): MemoryIndex {
   const unchanged =
     previous !== null &&
     Object.keys(previous.docs).length === Object.keys(file.docs).length &&
-    Object.values(file.docs).every((d) => previous.docs[d.id]?.hash === d.hash)
+    Object.values(file.docs).every(
+      (d) => previous.docs[d.id]?.hash === d.hash && previous.docs[d.id]?.path === d.path,
+    )
 
   const storage = unchanged && existsSync(primary) ? 'disk' : saveIndex(memRoot, file)
 

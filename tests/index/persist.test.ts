@@ -1,5 +1,5 @@
 import { describe, expect, test, afterEach } from 'bun:test'
-import { chmodSync, existsSync, readFileSync, writeFileSync } from 'node:fs'
+import { chmodSync, existsSync, readFileSync, renameSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { loadIndex, saveIndex, indexPath } from '../../src/index/persist'
 import { buildIndex } from '../../src/index/build'
@@ -59,6 +59,20 @@ describe('loadIndex', () => {
     ])
     const idx = loadIndex(repo.memRoot)
     expect([...(idx.backlinks.get('dec-b') ?? [])]).toEqual(['rule-a'])
+  })
+
+  test('persists a renamed document path instead of keeping the stale one', () => {
+    repo = makeRepo([{ id: 'rule-a', type: 'rule' }])
+    loadIndex(repo.memRoot)
+    const oldAbs = join(repo.memRoot, 'rules', 'rule-a.md')
+    const newAbs = join(repo.memRoot, 'rules', 'rule-a-renamed.md')
+    renameSync(oldAbs, newAbs)
+
+    const idx = loadIndex(repo.memRoot)
+    expect(idx.file.docs['rule-a']?.path).toBe('rules/rule-a-renamed.md')
+
+    const persisted = JSON.parse(readFileSync(indexPath(repo.memRoot), 'utf8'))
+    expect(persisted.docs['rule-a'].path).toBe('rules/rule-a-renamed.md')
   })
 
   test('serves a read-only memory directory without failing', () => {
