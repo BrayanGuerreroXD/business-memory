@@ -74,11 +74,7 @@ describe('pm init', () => {
     expect(parsed.data.root).not.toContain('\\')
   })
 
-  // Skipped: `list` is still a stub on this branch (Task 15, wave 9). Enable
-  // this test (change `test.skip` to `test`) once wave 9 merges and
-  // `listCommand` is implemented — it is the cheapest possible check that
-  // `init` produces a layout the rest of the tool actually accepts.
-  test.skip('the initialised repository is immediately usable by list', () => {
+  test('the initialised repository is immediately usable by list', () => {
     const repo = tmpRepo()
     run(io(repo, ['init']))
     const i = io(repo, ['list'])

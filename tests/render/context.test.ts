@@ -73,9 +73,22 @@ describe('renderContext', () => {
   })
 
   test('says so plainly when nothing matched, instead of printing nothing', () => {
-    const out = renderContext(result([], { matched: 0, shown: 0, estimatedTokens: 0 }), NOW)
+    const out = renderContext(result([], { matched: 0, shown: 0, truncated: 0, estimatedTokens: 12 }), NOW)
     expect(out).toContain('No business context found for "cancellation"')
+    expect(out).not.toContain('token budget')
     expect(out.trim().length).toBeGreaterThan(0)
+    // The footer must agree with the message: genuinely nothing matched.
+    expect(out).toContain('0 matched · 0 shown · 0 truncated · ~12 tokens')
+  })
+
+  test('says the budget was too small, not that nothing matched, when documents matched but none fit', () => {
+    const out = renderContext(result([], { matched: 5, shown: 0, truncated: 5, estimatedTokens: 41 }), NOW)
+    expect(out).not.toContain('No business context found')
+    expect(out).toContain('5 document(s) matched "cancellation", but none fit in the token budget.')
+    expect(out).toContain('--max-tokens')
+    expect(out).toContain('pm search "cancellation"')
+    // The footer must agree with the message: 5 things matched, none shown.
+    expect(out).toContain('5 matched · 0 shown · 5 truncated · ~41 tokens')
   })
 
   test('contains no non-ascii decoration', () => {

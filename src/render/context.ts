@@ -1,51 +1,59 @@
-import type { ContextEntry, ContextResult, DocType } from '../domain/types'
-import { ageLabel } from '../domain/tokens'
-
-const SECTION_ORDER: DocType[] = ['rule', 'decision', 'flow', 'feature']
-const SECTION_TITLE: Record<DocType, string> = {
-  rule: 'Rules',
-  decision: 'Decisions',
-  flow: 'Flows',
-  feature: 'Features',
-}
+import type { ContextResult } from '../domain/types'
+import {
+  ageLabel,
+  CONTEXT_SECTION_ORDER,
+  contextBudgetTooSmallBlock,
+  contextFooterBlock,
+  contextHeadingBlock,
+  contextNoMatchesBlock,
+  contextRelatedHeaderBlock,
+  contextSectionHeaderBlock,
+} from '../domain/tokens'
 
 function footer(r: ContextResult): string {
-  return `${r.totalDocs} docs · ${r.matched} matched · ${r.shown} shown · ${r.truncated} truncated · ~${r.estimatedTokens} tokens`
+  return contextFooterBlock(r)
 }
 
 export function renderContext(result: ContextResult, now: Date): string {
-  const out: string[] = [`# Business context: ${result.query}`, '']
+  let out = contextHeadingBlock(result.query)
 
   if (result.entries.length === 0) {
-    out.push(`No business context found for "${result.query}".`)
-    out.push('Try: pm list --type rule')
-    out.push('')
-    out.push(footer(result))
-    return `${out.join('\n')}\n`
+    // These are two different situations and only one of them means "there
+    // is no business context here": nothing matching the query exists
+    // (matched === 0), versus something matched but the token budget was too
+    // small to show any of it (matched > 0). Telling the reader "not found"
+    // in the second case reads as false confidence that nothing needs to be
+    // known, when there is in fact relevant context it just never saw.
+    out +=
+      result.matched === 0
+        ? contextNoMatchesBlock(result.query)
+        : contextBudgetTooSmallBlock(result.query, result.matched)
+    out += footer(result)
+    return `${out}\n`
   }
 
   const full = result.entries.filter((e) => e.mode === 'full')
   const lines = result.entries.filter((e) => e.mode === 'line')
 
-  for (const type of SECTION_ORDER) {
+  for (const type of CONTEXT_SECTION_ORDER) {
     const group = full.filter((e) => e.doc.type === type)
     if (group.length === 0) continue
-    out.push(`## ${SECTION_TITLE[type]}`, '')
+    out += contextSectionHeaderBlock(type)
     for (const e of group) {
-      out.push(`### ${e.doc.id} — ${e.doc.title}${ageLabel(e.doc.created, now)}`)
-      out.push(e.doc.body.trim())
-      out.push('')
+      out += `### ${e.doc.id} — ${e.doc.title}${ageLabel(e.doc.created, now)}\n`
+      out += `${e.doc.body.trim()}\n`
+      out += '\n'
     }
   }
 
   if (lines.length > 0) {
-    out.push('## Related — run `pm show <id>` for the body', '')
+    out += contextRelatedHeaderBlock()
     for (const e of lines) {
-      out.push(`- ${e.doc.id} — ${e.doc.title}${ageLabel(e.doc.created, now)}`)
+      out += `- ${e.doc.id} — ${e.doc.title}${ageLabel(e.doc.created, now)}\n`
     }
-    out.push('')
+    out += '\n'
   }
 
-  out.push(footer(result))
-  return `${out.join('\n')}\n`
+  out += footer(result)
+  return `${out}\n`
 }
