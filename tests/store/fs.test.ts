@@ -2,7 +2,7 @@ import { describe, expect, test, afterEach } from 'bun:test'
 import { mkdtempSync, mkdirSync, writeFileSync, readFileSync, rmSync, readdirSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
-import { ensureDir, readText, atomicWrite, walkMarkdown } from '../../src/store/fs'
+import { ensureDir, exists, readText, atomicWrite, walkMarkdown } from '../../src/store/fs'
 
 const created: string[] = []
 function tmp(): string {
@@ -91,5 +91,38 @@ describe('walkMarkdown', () => {
 
   test('returns an empty array for a missing directory', () => {
     expect(walkMarkdown(join(tmp(), 'nope'))).toEqual([])
+  })
+})
+
+describe('exists', () => {
+  test('is true for a file and false for a missing one', () => {
+    const root = tmp()
+    writeFileSync(join(root, 'there.md'), 'x')
+    expect(exists(join(root, 'there.md'))).toBe(true)
+    expect(exists(join(root, 'nope.md'))).toBe(false)
+  })
+})
+
+describe('the filesystem stays behind the store layer', () => {
+  test('only store/ and cli/io.ts import node:fs', () => {
+    const srcRoot = join(import.meta.dir, '..', '..', 'src')
+    const offenders: string[] = []
+
+    const walk = (dir: string, rel: string): void => {
+      for (const entry of readdirSync(dir, { withFileTypes: true })) {
+        const childRel = rel === '' ? entry.name : `${rel}/${entry.name}`
+        if (entry.isDirectory()) {
+          walk(join(dir, entry.name), childRel)
+        } else if (entry.name.endsWith('.ts')) {
+          if (childRel.startsWith('store/') || childRel === 'cli/io.ts') continue
+          if (readFileSync(join(dir, entry.name), 'utf8').includes("from 'node:fs'")) {
+            offenders.push(childRel)
+          }
+        }
+      }
+    }
+
+    walk(srcRoot, '')
+    expect(offenders).toEqual([])
   })
 })

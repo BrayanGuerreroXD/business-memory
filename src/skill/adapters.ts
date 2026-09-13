@@ -1,5 +1,3 @@
-import { CliError, EXIT } from '../cli/exit'
-
 export type SkillTarget = 'claude' | 'agents'
 
 export const BEGIN = '<!-- BEGIN project-memory -->'
@@ -37,28 +35,33 @@ function countOccurrences(text: string, marker: string): number {
   }
 }
 
-export function spliceBlock(existing: string, block: string, fileLabel = 'AGENTS.md'): string {
+/**
+ * Either the spliced file, or the marker counts that made splicing unsafe.
+ * The caller decides what a refusal means; this layer knows nothing about
+ * exit codes.
+ */
+export type SpliceResult =
+  | { ok: true; text: string }
+  | { ok: false; beginCount: number; endCount: number }
+
+export function spliceBlock(existing: string, block: string): SpliceResult {
   const text = existing.replace(/\r\n/g, '\n')
   const beginCount = countOccurrences(text, BEGIN)
   const endCount = countOccurrences(text, END)
 
   if (beginCount === 0 && endCount === 0) {
     const separator = text.trim() === '' ? '' : `${text.replace(/\n*$/, '')}\n\n`
-    return `${separator}${block}`
+    return { ok: true, text: `${separator}${block}` }
   }
 
   const start = text.indexOf(BEGIN)
   const end = text.indexOf(END)
   if (beginCount === 1 && endCount === 1 && end > start) {
-    return `${text.slice(0, start)}${block}${text.slice(end + END.length).replace(/^\n/, '')}`
+    return {
+      ok: true,
+      text: `${text.slice(0, start)}${block}${text.slice(end + END.length).replace(/^\n/, '')}`,
+    }
   }
 
-  throw new CliError(
-    'CONFLICT',
-    `${fileLabel} has ${beginCount} '${BEGIN}' marker(s) and ${endCount} '${END}' marker(s); expected exactly one of each, BEGIN before END`,
-    EXIT.CONFLICT,
-    {
-      hint: `remove the stray project-memory markers from ${fileLabel}, or edit the existing block by hand`,
-    },
-  )
+  return { ok: false, beginCount, endCount }
 }
