@@ -19,6 +19,15 @@ describe('claudeAdapter', () => {
   test('keeps the canonical body verbatim', () => {
     expect(claudeAdapter(CANONICAL).content).toContain('Run `pm context` before planning.')
   })
+
+  test('quotes the description so a colon or quote in it cannot break YAML parsing', () => {
+    const { content } = claudeAdapter(CANONICAL)
+    const line = content.split('\n').find((l) => l.startsWith('description:'))
+    expect(line).toBeDefined()
+    expect(line?.startsWith('description: "')).toBe(true)
+    const value = line?.slice('description: '.length) ?? ''
+    expect(() => JSON.parse(value)).not.toThrow()
+  })
 })
 
 describe('agentsBlock', () => {

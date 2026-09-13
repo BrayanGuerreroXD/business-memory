@@ -9,7 +9,13 @@ const DESCRIPTION =
   'Use before planning any change to behaviour, and after implementing one, to read and record this repository business knowledge via the pm CLI.'
 
 export function claudeAdapter(canonical: string): { path: string; content: string } {
-  const frontmatter = ['---', 'name: project-memory', `description: ${DESCRIPTION}`, '---', ''].join('\n')
+  const frontmatter = [
+    '---',
+    'name: project-memory',
+    `description: ${JSON.stringify(DESCRIPTION)}`,
+    '---',
+    '',
+  ].join('\n')
   return {
     path: '.claude/skills/project-memory/SKILL.md',
     content: `${frontmatter}\n${canonical.replace(/\r\n/g, '\n').trim()}\n`,
