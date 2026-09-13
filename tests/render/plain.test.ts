@@ -25,9 +25,23 @@ describe('renderSearch', () => {
 })
 
 describe('renderList', () => {
-  test('shows type, id and title', () => {
+  test('shows type, id and title with proper spacing', () => {
     const out = renderList([doc({})], 42)
-    expect(out).toContain('rule  rule-x — Title')
+    expect(out).toContain('rule     rule-x — Title')
+  })
+
+  test('maintains at least one space separator for all document types', () => {
+    const out = renderList(
+      [
+        doc({ type: 'decision', id: 'dec-x' }),
+        doc({ type: 'feature', id: 'feat-x' }),
+      ],
+      42,
+    )
+    // decision is 8 chars, so padEnd(9) gives one space separator
+    expect(/decision /.test(out)).toBe(true)
+    // feature is 7 chars, so padEnd(9) gives two space separators
+    expect(/feature  /.test(out)).toBe(true)
   })
 
   test('an empty memory prints guidance, not silence', () => {

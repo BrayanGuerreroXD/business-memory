@@ -18,7 +18,7 @@ export function renderList(docs: IndexedDoc[], totalDocs: number): string {
   }
   const lines = docs.map((d) => {
     const flag = d.status === 'superseded' ? '  [superseded]' : ''
-    return `${d.type.padEnd(6)}${d.id} — ${d.title}${flag}`
+    return `${d.type.padEnd(9)}${d.id} — ${d.title}${flag}`
   })
   return `${[...lines, '', `${docs.length} of ${totalDocs} docs`].join('\n')}\n`
 }
