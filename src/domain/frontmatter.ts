@@ -9,11 +9,19 @@ const FIELD_ORDER = [
 export function splitFrontmatter(raw: string): { yaml: string; body: string } | null {
   const text = raw.replace(/\r\n/g, '\n')
   if (!text.startsWith('---\n')) return null
-  const end = text.indexOf('\n---\n', 3)
-  if (end === -1) return null
+
+  let end = text.indexOf('\n---\n', 3)
+  let bodyAt = end + 5
+  if (end === -1) {
+    // A closing fence that ends the file, with no trailing newline and no body.
+    if (!text.endsWith('\n---')) return null
+    end = text.length - 4
+    bodyAt = text.length
+  }
+
   return {
     yaml: text.slice(4, end + 1).replace(/\n$/, ''),
-    body: text.slice(end + 5).trim(),
+    body: text.slice(bodyAt).trim(),
   }
 }
 

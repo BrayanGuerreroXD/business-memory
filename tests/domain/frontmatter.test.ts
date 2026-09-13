@@ -21,6 +21,22 @@ const VALID: Frontmatter = {
 }
 
 describe('splitFrontmatter', () => {
+  test('accepts a closing fence that ends the file with no trailing newline', () => {
+    const out = splitFrontmatter('---\nid: x\ntype: rule\n---')
+    expect(out).not.toBeNull()
+    expect(out?.yaml).toBe('id: x\ntype: rule')
+    expect(out?.body).toBe('')
+  })
+
+  test('the same document with a trailing newline splits identically', () => {
+    expect(splitFrontmatter('---\nid: x\n---')).toEqual(splitFrontmatter('---\nid: x\n---\n'))
+  })
+
+  test('an opening fence with no closing fence is still null', () => {
+    expect(splitFrontmatter('---\nid: x\n')).toBeNull()
+    expect(splitFrontmatter('---\nid: x')).toBeNull()
+  })
+
   test('separates the yaml block from the body', () => {
     const raw = '---\nid: x\n---\n\n# Title\n\nBody text.\n'
     const out = splitFrontmatter(raw)

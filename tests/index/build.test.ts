@@ -77,6 +77,30 @@ describe('buildIndex', () => {
     expect(warnings.join(' ')).toContain('rules/broken.md')
   })
 
+  test('indexes a document whose frontmatter ends the file with no trailing newline', () => {
+    repo = makeRepo([{ id: 'rule-a', type: 'rule' }])
+    const fm = [
+      '---',
+      'id: rule-b',
+      'type: rule',
+      'title: Rule B',
+      'tags: []',
+      'source: ops meeting',
+      'status: active',
+      'superseded_by: null',
+      'links: []',
+      'refs: []',
+      'created: 2026-09-12',
+      '---',
+    ].join('\n')
+    writeFileSync(join(repo.memRoot, 'rules', 'rule-b.md'), fm)
+
+    const { file, warnings } = buildIndex(repo.memRoot, null)
+    expect(Object.keys(file.docs).sort()).toEqual(['rule-a', 'rule-b'])
+    expect(file.docs['rule-b']?.body).toBe('')
+    expect(warnings).toEqual([])
+  })
+
   test('ignores SKILL.md at the memory root', () => {
     repo = makeRepo([{ id: 'rule-a', type: 'rule' }])
     writeFileSync(join(repo.memRoot, 'SKILL.md'), '# protocol\n')
