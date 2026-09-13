@@ -77,4 +77,22 @@ describe('pm validate', () => {
     expect(parsed.error.code).toBe('VALIDATION_FAILED')
     expect(parsed.error.findings.some((f: { message: string }) => f.message.includes('ghost'))).toBe(true)
   })
+
+  test('Spanish-looking title warns and exits 0', () => {
+    repo = makeRepo([{ id: 'rule-a', type: 'rule', title: 'Regla de Negocio', created: '2026-09-01' }])
+    const i = io(repo.root, ['validate'])
+    expect(run(i)).toBe(EXIT.OK)
+    expect(i.outText()).toContain('warning')
+    expect(i.outText()).toContain('Spanish')
+  })
+
+  test('Spanish-looking tag warns and exits 0', () => {
+    repo = makeRepo([
+      { id: 'rule-a', type: 'rule', title: 'Good Title', tags: ['proceso', 'de', 'negocio'], created: '2026-09-01' },
+    ])
+    const i = io(repo.root, ['validate'])
+    expect(run(i)).toBe(EXIT.OK)
+    expect(i.outText()).toContain('warning')
+    expect(i.outText()).toContain('Spanish')
+  })
 })

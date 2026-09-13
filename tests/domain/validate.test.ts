@@ -71,4 +71,34 @@ describe('validateIndex', () => {
     const found = validateIndex(loadIndex(repo.memRoot), [], NOW)
     expect(found.some((f) => f.level === 'warning' && f.message.includes('no links'))).toBe(true)
   })
+
+  test('warns about a Spanish-looking title', () => {
+    repo = makeRepo([{ id: 'rule-a', type: 'rule', title: 'Regla de Negocio', created: '2026-09-01' }])
+    const found = validateIndex(loadIndex(repo.memRoot), [], NOW)
+    const spanishWarning = found.find((f) => f.level === 'warning' && f.message.includes('Spanish'))
+    expect(spanishWarning).toBeDefined()
+    expect(spanishWarning?.message).toContain('title looks Spanish')
+    expect(errors(found)).toEqual([])
+  })
+
+  test('warns about a Spanish-looking tag', () => {
+    repo = makeRepo([
+      { id: 'rule-a', type: 'rule', title: 'Good Title', tags: ['proceso', 'de', 'negocio'], created: '2026-09-01' },
+    ])
+    const found = validateIndex(loadIndex(repo.memRoot), [], NOW)
+    const spanishWarning = found.find((f) => f.level === 'warning' && f.message.includes('Spanish'))
+    expect(spanishWarning).toBeDefined()
+    expect(spanishWarning?.message).toContain("tag 'de' looks Spanish")
+    expect(errors(found)).toEqual([])
+  })
+
+  test('produces no Spanish warning for all-English text', () => {
+    repo = makeRepo([
+      { id: 'rule-a', type: 'rule', title: 'Business Rule', tags: ['process', 'workflow'], created: '2026-09-01' },
+    ])
+    const found = validateIndex(loadIndex(repo.memRoot), [], NOW)
+    const spanishWarning = found.find((f) => f.level === 'warning' && f.message.includes('Spanish'))
+    expect(spanishWarning).toBeUndefined()
+    expect(errors(found)).toEqual([])
+  })
 })

@@ -90,7 +90,9 @@ export function validateIndex(index: MemoryIndex, indexWarnings: string[], now: 
       })
     }
 
-    // Warn about Spanish-looking titles
+    // Warn about Spanish-looking titles or tags
+    // SPANISH_HINT matches Spanish function words; it won't catch single-word Spanish nouns.
+    // That's intentional: a broader pattern would false-positive on English text.
     if (SPANISH_HINT.test(doc.title)) {
       findings.push({
         level: 'warning',
@@ -98,6 +100,19 @@ export function validateIndex(index: MemoryIndex, indexWarnings: string[], now: 
         path: doc.path,
         message: 'title looks Spanish — title and tags are canonically English',
       })
+    } else {
+      // Check tags only if title didn't already trigger
+      for (const tag of doc.tags) {
+        if (SPANISH_HINT.test(tag)) {
+          findings.push({
+            level: 'warning',
+            id: doc.id,
+            path: doc.path,
+            message: `tag '${tag}' looks Spanish — title and tags are canonically English`,
+          })
+          break // One warning per document is enough
+        }
+      }
     }
   }
 
