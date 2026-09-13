@@ -199,22 +199,62 @@ describe('pm context', () => {
   })
 })
 
-describe('pm index --force', () => {
-  test('rebuilds the cache after it is deleted', () => {
+describe('pm index', () => {
+  test('plain index performs the incremental refresh and reports that mode', () => {
+    repo = makeRepo(FIXTURE)
+    const cache = join(repo.memRoot, 'index.json')
+    rmSync(cache, { force: true })
+    const i = io(repo.root, ['index'])
+    expect(run(i)).toBe(EXIT.OK)
+    expect(existsSync(cache)).toBe(true)
+    expect(i.outText()).toContain('incremental')
+    expect(i.outText()).not.toContain('force')
+  })
+
+  test('plain index does not resurface warnings the way --force does', () => {
+    repo = makeRepo(FIXTURE)
+    const r = repo
+    require('node:fs').writeFileSync(join(r.memRoot, 'rules', 'broken.md'), '# no frontmatter\n')
+    const i = io(r.root, ['index'])
+    expect(run(i)).toBe(EXIT.OK)
+    expect(i.outText() + i.errText()).not.toContain('broken.md')
+  })
+
+  test('plain index reports its mode in --json too', () => {
+    repo = makeRepo(FIXTURE)
+    const i = io(repo.root, ['index', '--json'])
+    expect(run(i)).toBe(EXIT.OK)
+    const parsed = JSON.parse(i.outText())
+    expect(parsed.ok).toBe(true)
+    expect(parsed.data.mode).toBe('incremental')
+  })
+
+  test('--force rebuilds the cache after it is deleted and reports the force mode', () => {
     repo = makeRepo(FIXTURE)
     run(io(repo.root, ['list']))
     const cache = join(repo.memRoot, 'index.json')
     rmSync(cache, { force: true })
-    expect(run(io(repo.root, ['index', '--force']))).toBe(EXIT.OK)
+    const i = io(repo.root, ['index', '--force'])
+    expect(run(i)).toBe(EXIT.OK)
     expect(existsSync(cache)).toBe(true)
+    expect(i.outText()).toContain('force')
   })
 
-  test('reports warnings for documents it had to skip', () => {
+  test('--force reports warnings for documents it had to skip', () => {
     repo = makeRepo(FIXTURE)
     const r = repo
     require('node:fs').writeFileSync(join(r.memRoot, 'rules', 'broken.md'), '# no frontmatter\n')
     const i = io(r.root, ['index', '--force'])
     expect(run(i)).toBe(EXIT.OK)
     expect(i.outText() + i.errText()).toContain('broken.md')
+  })
+
+  test('--force reports its mode in --json too', () => {
+    repo = makeRepo(FIXTURE)
+    const i = io(repo.root, ['index', '--force', '--json'])
+    expect(run(i)).toBe(EXIT.OK)
+    const parsed = JSON.parse(i.outText())
+    expect(parsed.ok).toBe(true)
+    expect(parsed.data.mode).toBe('force')
   })
 })
