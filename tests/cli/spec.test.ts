@@ -1,7 +1,7 @@
 import { describe, expect, test } from 'bun:test'
 import { readFileSync, readdirSync } from 'node:fs'
 import { join } from 'node:path'
-import { BOOLEAN_FLAGS, SPECS, acceptedFlagNames, specFor } from '../../src/cli/spec'
+import { BOOLEAN_FLAGS, GLOBAL_FLAGS, SPECS, acceptedFlagNames, specFor } from '../../src/cli/spec'
 import { COMMANDS } from '../../src/cli/registry'
 
 const COMMAND_DIR = join(import.meta.dir, '..', '..', 'src', 'cli', 'commands')
@@ -75,10 +75,25 @@ describe('pm help --json declares what the commands accept', () => {
   })
 
   test('every boolean flag belongs to some command or is global', () => {
-    const declared = new Set(SPECS.flatMap((s) => s.flags).filter((f) => f.startsWith('--')).map((f) => f.slice(2)))
+    const declared = new Set([
+      ...SPECS.flatMap((s) => s.flags),
+      ...GLOBAL_FLAGS.map((f) => f.split(' ')[0] as string),
+    ].filter((f) => f.startsWith('--')).map((f) => f.slice(2)))
     for (const name of BOOLEAN_FLAGS) {
-      if (name === 'json' || name === 'no-color' || name === 'help' || name === 'yes') continue
       expect(`${name}: ${declared.has(name) ? 'declared' : 'ORPHAN'}`).toBe(`${name}: declared`)
+    }
+  })
+
+  test('every global flag is accepted by every command', () => {
+    for (const spec of SPECS) {
+      const accepted = new Set(acceptedFlagNames(spec))
+      for (const flag of GLOBAL_FLAGS) {
+        const name = (flag.split(' ')[0] as string).replace(/^-+/, '')
+        const canonical = name === 'C' ? 'cwd' : name
+        expect(`${spec.name}: --${canonical}${accepted.has(canonical) ? '' : ' NOT ACCEPTED'}`).toBe(
+          `${spec.name}: --${canonical}`,
+        )
+      }
     }
   })
 

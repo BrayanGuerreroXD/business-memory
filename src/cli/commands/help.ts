@@ -11,7 +11,7 @@ export function helpCommand(ctx: Ctx): number {
   }
   const lines = [`pm ${VERSION}`, '', 'Commands:']
   for (const s of SPECS) lines.push(`  ${s.name.padEnd(9)}${s.summary}`)
-  lines.push('', 'Global flags: --json --no-color -C <dir>', 'Machine-readable spec: pm help --json', '')
+  lines.push('', `Global flags: ${GLOBAL_FLAGS.join(' ')}`, 'Machine-readable spec: pm help --json', '')
   ctx.out(lines.join('\n'))
   return EXIT.OK
 }

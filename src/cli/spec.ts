@@ -37,11 +37,15 @@ export const FLAG_ALIASES: Record<string, string> = {
   '--format json': '--json',
 }
 
-/** Flags every command accepts, whatever its own spec declares. */
-export const GLOBAL_FLAGS = ['--json', '--no-color', '-C <dir>', '--help']
+/**
+ * Flags every command accepts, whatever its own spec declares. `--yes` asks for
+ * non-interactive behaviour, which is the only behaviour this CLI has: it never
+ * prompts, so the flag is accepted and changes nothing.
+ */
+export const GLOBAL_FLAGS = ['--json', '--no-color', '-C <dir>', '--yes', '--help']
 
 /** Canonical names of the global flags, after alias resolution (`-C` is `cwd`). */
-const GLOBAL_FLAG_NAMES: ReadonlySet<string> = new Set(['json', 'no-color', 'cwd', 'help'])
+const GLOBAL_FLAG_NAMES: ReadonlySet<string> = new Set(['json', 'no-color', 'cwd', 'yes', 'help'])
 
 /** Flags that never consume the token after them. */
 export const BOOLEAN_FLAGS: ReadonlySet<string> = new Set([

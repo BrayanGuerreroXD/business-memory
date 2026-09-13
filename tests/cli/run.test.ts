@@ -194,3 +194,16 @@ describe('unknown flags', () => {
     expect(run(io)).not.toBe(EXIT.USAGE)
   })
 })
+
+describe('--yes is accepted everywhere and changes nothing', () => {
+  test('it is not reported as an unknown flag', () => {
+    const io = fakeIo(['list', '--yes', '--json'])
+    expect(run(io)).not.toBe(EXIT.USAGE)
+    expect(io.outText() + io.errText()).not.toContain('UNKNOWN_FLAG')
+  })
+
+  test('it does not swallow the positional after it', () => {
+    const io = fakeIo(['show', '--yes', 'rule-x'])
+    expect(run(io)).not.toBe(EXIT.USAGE)
+  })
+})
