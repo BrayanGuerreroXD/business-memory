@@ -1,13 +1,31 @@
 {
-  "name": "project-memory",
+  "name": "business-memory",
   "version": "0.1.0",
   "description": "Shared business memory for software projects and AI agents",
   "type": "module",
   "license": "GPL-3.0-or-later",
+  "author": "Brayan Stewart Guerrero Ordoñez",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/BrayanGuerreroXD/business-memory.git"
+  },
+  "homepage": "https://github.com/BrayanGuerreroXD/business-memory#readme",
+  "bugs": { "url": "https://github.com/BrayanGuerreroXD/business-memory/issues" },
+  "keywords": [
+    "ai-agents",
+    "business-rules",
+    "documentation",
+    "knowledge-base",
+    "markdown",
+    "cli",
+    "claude-code",
+    "codex",
+    "agent-memory"
+  ],
   "engines": { "node": ">=20" },
   "bin": {
     "pm": "./dist/bin.js",
-    "project-memory": "./dist/bin.js"
+    "business-memory": "./dist/bin.js"
   },
   "files": ["dist"],
   "scripts": {

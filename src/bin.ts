@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// project-memory - shared business memory for software projects and AI agents
+// business-memory - shared business memory for software projects and AI agents
 // Copyright (C) 2026 Brayan Stewart Guerrero Ordonez
 //
 // This program is free software: you can redistribute it and/or modify it

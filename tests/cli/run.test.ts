@@ -62,7 +62,7 @@ describe('run', () => {
     expect(parsed.error.code).toBe('UNKNOWN_COMMAND')
   })
 
-  test('requireRoot throws NO_MEMORY with an actionable hint when no .project-memory is found', () => {
+  test('requireRoot throws NO_MEMORY with an actionable hint when no .business-memory is found', () => {
     const dir = mkdtempSync(join(tmpdir(), 'pm-no-memory-'))
     try {
       const io = fakeIo([], { cwd: dir, env: {} })

@@ -30,7 +30,7 @@ describe('pm init', () => {
   test('creates the full memory layout', () => {
     const repo = tmpRepo()
     expect(run(io(repo, ['init']))).toBe(EXIT.OK)
-    const mem = join(repo, '.project-memory')
+    const mem = join(repo, '.business-memory')
     for (const d of ['rules', 'flows', 'decisions', 'features']) {
       expect(existsSync(join(mem, d, '.gitkeep'))).toBe(true)
     }
@@ -42,13 +42,13 @@ describe('pm init', () => {
   test('writes LF line endings even on Windows', () => {
     const repo = tmpRepo()
     run(io(repo, ['init']))
-    expect(readFileSync(join(repo, '.project-memory', 'SKILL.md'), 'utf8')).not.toContain('\r')
+    expect(readFileSync(join(repo, '.business-memory', 'SKILL.md'), 'utf8')).not.toContain('\r')
   })
 
   test('is idempotent and reports what it respected', () => {
     const repo = tmpRepo()
     run(io(repo, ['init']))
-    const sentinel = join(repo, '.project-memory', 'SKILL.md')
+    const sentinel = join(repo, '.business-memory', 'SKILL.md')
     writeFileSync(sentinel, 'CUSTOM PROTOCOL\n', 'utf8')
     const second = io(repo, ['init'])
     expect(run(second)).toBe(EXIT.OK)
@@ -59,9 +59,9 @@ describe('pm init', () => {
   test('--force replaces SKILL.md', () => {
     const repo = tmpRepo()
     run(io(repo, ['init']))
-    writeFileSync(join(repo, '.project-memory', 'SKILL.md'), 'CUSTOM\n', 'utf8')
+    writeFileSync(join(repo, '.business-memory', 'SKILL.md'), 'CUSTOM\n', 'utf8')
     run(io(repo, ['init', '--force']))
-    expect(readFileSync(join(repo, '.project-memory', 'SKILL.md'), 'utf8')).not.toBe('CUSTOM\n')
+    expect(readFileSync(join(repo, '.business-memory', 'SKILL.md'), 'utf8')).not.toBe('CUSTOM\n')
   })
 
   test('--json reports created and kept paths', () => {
@@ -70,7 +70,7 @@ describe('pm init', () => {
     expect(run(i)).toBe(EXIT.OK)
     const parsed = JSON.parse(i.outText())
     expect(parsed.ok).toBe(true)
-    expect(parsed.data.created).toContain('.project-memory/SKILL.md')
+    expect(parsed.data.created).toContain('.business-memory/SKILL.md')
     expect(parsed.data.root).not.toContain('\\')
   })
 

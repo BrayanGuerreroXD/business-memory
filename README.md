@@ -1,4 +1,4 @@
-# project-memory
+# business-memory
 
 A local CLI that stores your repository's business knowledge — the *why*
 behind the code — as plain Markdown, and serves it to AI coding agents as
@@ -7,7 +7,7 @@ structured context.
 ## Install
 
 ```sh
-npm install -g project-memory
+npm install -g business-memory
 ```
 
 Requires Node.js 20 or later. No runtime dependencies — `pm` ships as a
@@ -16,7 +16,7 @@ single bundled file.
 ## Quick start
 
 ```sh
-pm init                              # create .project-memory/ in this repo
+pm init                              # create .business-memory/ in this repo
 pm skill install --target claude     # teach the agent the protocol
 
 # write a rule as a stub: pm prints the path, you fill the body in
@@ -51,18 +51,18 @@ agent can paste it straight into a prompt.
 
 ## What goes in git
 
-`pm init` creates `.project-memory/` with one subfolder per document type
+`pm init` creates `.business-memory/` with one subfolder per document type
 (`rules/`, `decisions/`, `flows/`, `features/`) plus `SKILL.md`, the agent
 protocol file. Everything there is meant to be committed:
 
-- `.project-memory/**/*.md` — the knowledge documents themselves
-- `.project-memory/SKILL.md` — instructions an agent reads before acting
-- `.project-memory/.gitattributes` — normalizes line endings for the docs
+- `.business-memory/**/*.md` — the knowledge documents themselves
+- `.business-memory/SKILL.md` — instructions an agent reads before acting
+- `.business-memory/.gitattributes` — normalizes line endings for the docs
 
 One file is generated and **not** meant to be committed:
 
-- `.project-memory/index.json` — a rebuildable search cache (ignored via a
-  generated `.project-memory/.gitignore`; rebuild it any time with `pm
+- `.business-memory/index.json` — a rebuildable search cache (ignored via a
+  generated `.business-memory/.gitignore`; rebuild it any time with `pm
   index`)
 
 ## Commands
@@ -76,7 +76,7 @@ command).
 
 The full design rationale — problem statement, document model, and the
 Markdown-as-database approach — lives in
-`docs/specs/2026-09-12-project-memory-design.md` in this repository.
+`docs/specs/2026-09-12-business-memory-design.md` in this repository.
 
 ## License
 

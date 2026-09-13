@@ -1,7 +1,7 @@
-# project-memory protocol
+# business-memory protocol
 
 This repository keeps its **business knowledge** — the WHY behind the code — in
-`.project-memory/`, served by the `pm` CLI. Run `pm help --json` for the full
+`.business-memory/`, served by the `pm` CLI. Run `pm help --json` for the full
 command spec.
 
 ## Before planning
