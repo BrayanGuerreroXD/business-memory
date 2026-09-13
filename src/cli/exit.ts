@@ -18,7 +18,3 @@ export class CliError extends Error {
     this.name = 'CliError'
   }
 }
-
-export function notImplemented(command: string): never {
-  throw new CliError('NOT_IMPLEMENTED', `command '${command}' is not implemented yet`, EXIT.USAGE)
-}
