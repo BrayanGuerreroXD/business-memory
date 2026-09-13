@@ -24,8 +24,8 @@
   ],
   "engines": { "node": ">=20" },
   "bin": {
-    "pm": "./dist/bin.js",
-    "business-memory": "./dist/bin.js"
+    "pm": "dist/bin.js",
+    "business-memory": "dist/bin.js"
   },
   "files": ["dist"],
   "scripts": {
