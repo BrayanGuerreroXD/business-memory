@@ -69,13 +69,6 @@ export function validateIndex(index: MemoryIndex, indexWarnings: string[], now: 
       }
     }
 
-    // Check source exists for rules and decisions
-    if ((doc.type === 'rule' || doc.type === 'decision')) {
-      // This check relies on frontmatter validation having already checked source
-      // We need to look at the original frontmatter... but we don't have it here.
-      // Let me check if IndexedDoc has source field
-    }
-
     // Warn about old documents
     const age = monthsBetween(doc.created, now)
     if (age >= AGE_WARN_MONTHS) {
