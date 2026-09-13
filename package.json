@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "description": "Shared business memory for software projects and AI agents",
   "type": "module",
-  "license": "MIT",
+  "license": "GPL-3.0-or-later",
   "engines": { "node": ">=20" },
   "bin": {
     "pm": "./dist/bin.js",

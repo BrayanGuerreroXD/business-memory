@@ -77,3 +77,13 @@ command).
 The full design rationale — problem statement, document model, and the
 Markdown-as-database approach — lives in
 `docs/specs/2026-09-12-project-memory-design.md` in this repository.
+
+## License
+
+GNU General Public License v3.0 or later. See [LICENSE](LICENSE).
+
+Running `pm` on your repository does not place your code, your documents, or
+anything `pm` writes under the GPL — executing a program is not distributing
+it, and a program's output is not a derivative work of the program. The
+copyleft applies if you distribute a modified `pm`, or link its modules into a
+program you distribute.
