@@ -28,6 +28,12 @@ export const SPECS: CommandSpec[] = [
   { name: 'skill', summary: 'install the agent protocol', usage: 'pm skill install --target <claude|agents>', flags: ['--target'] },
 ]
 
+/** Flags every command accepts, whatever its own spec declares. */
+export const GLOBAL_FLAGS = ['--json', '--no-color', '-C <dir>', '--help']
+
+/** Canonical names of the global flags, after alias resolution (`-C` is `cwd`). */
+const GLOBAL_FLAG_NAMES: ReadonlySet<string> = new Set(['json', 'no-color', 'cwd', 'help'])
+
 /** Flags that never consume the token after them. */
 export const BOOLEAN_FLAGS: ReadonlySet<string> = new Set([
   'json',
@@ -39,3 +45,24 @@ export const BOOLEAN_FLAGS: ReadonlySet<string> = new Set([
   'yes',
   'help',
 ])
+
+export function specFor(command: string): CommandSpec | null {
+  return SPECS.find((s) => s.name === command) ?? null
+}
+
+/** The flag names a command accepts, without the leading dashes. */
+export function acceptedFlagNames(spec: CommandSpec): string[] {
+  const own = spec.flags.filter((f) => f.startsWith('--')).map((f) => f.slice(2))
+  return [...own, ...GLOBAL_FLAG_NAMES]
+}
+
+/** Flag names present in `flags` that the command does not accept. */
+export function unknownFlagNames(spec: CommandSpec, flags: Record<string, string | boolean>): string[] {
+  const accepted = new Set(acceptedFlagNames(spec))
+  return Object.keys(flags).filter((name) => !accepted.has(name))
+}
+
+/** Everything a command accepts, as printable flags. */
+export function displayFlags(spec: CommandSpec): string[] {
+  return [...spec.flags, ...GLOBAL_FLAGS]
+}

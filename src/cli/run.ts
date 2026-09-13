@@ -4,6 +4,7 @@ import { CliError, EXIT } from './exit'
 import type { Io } from './io'
 import { COMMANDS } from './registry'
 import { helpCommand } from './commands/help'
+import { acceptedFlagNames, displayFlags, specFor, unknownFlagNames } from './spec'
 import { didYouMean, renderError, type ErrorPayload } from '../render/error'
 import { errEnvelope } from '../render/json'
 
@@ -33,6 +34,24 @@ export function run(io: Io): number {
       }
       if (suggestion !== null) payload['didYouMean'] = suggestion
       return emit(payload, EXIT.USAGE)
+    }
+
+    const spec = specFor(args.command)
+    if (spec !== null) {
+      const unknown = unknownFlagNames(spec, args.flags)
+      const first = unknown[0]
+      if (first !== undefined) {
+        const valid = displayFlags(spec)
+        const payload: ErrorPayload = {
+          code: 'UNKNOWN_FLAG',
+          message: `unknown flag '--${first}' for '${spec.name}' (valid: ${valid.join(', ')})`,
+          validFlags: valid,
+          hint: 'pm help --json',
+        }
+        const closest = didYouMean(first, acceptedFlagNames(spec))
+        if (closest !== null) payload['didYouMean'] = `--${closest}`
+        return emit(payload, EXIT.USAGE)
+      }
     }
 
     return handler(ctx)
