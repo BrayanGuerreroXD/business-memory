@@ -1,7 +1,13 @@
 import { describe, expect, test } from 'bun:test'
+import { mkdtempSync, rmSync } from 'node:fs'
+import { tmpdir } from 'node:os'
+import { join } from 'node:path'
 import { run } from '../../src/cli/run'
 import type { Io } from '../../src/cli/io'
-import { EXIT } from '../../src/cli/exit'
+import { CliError, EXIT } from '../../src/cli/exit'
+import { parseArgv } from '../../src/cli/args'
+import { makeCtx } from '../../src/cli/context'
+import { COMMANDS } from '../../src/cli/registry'
 
 function fakeIo(argv: string[], over: Partial<Io> = {}): Io & { outText: () => string; errText: () => string } {
   const out: string[] = []
@@ -56,10 +62,27 @@ describe('run', () => {
     expect(parsed.error.code).toBe('UNKNOWN_COMMAND')
   })
 
-  test('missing memory exits 4 with an actionable hint', () => {
-    const io = fakeIo(['list'], { cwd: require('node:os').tmpdir(), env: { PM_ROOT: '' } })
-    const code = run(io)
-    expect(code === EXIT.NO_MEMORY || code === EXIT.USAGE).toBe(true)
+  test('requireRoot throws NO_MEMORY with an actionable hint when no .project-memory is found', () => {
+    const dir = mkdtempSync(join(tmpdir(), 'pm-no-memory-'))
+    try {
+      const io = fakeIo([], { cwd: dir, env: {} })
+      const ctx = makeCtx(io, parseArgv([]))
+
+      let caught: unknown = null
+      try {
+        ctx.requireRoot()
+      } catch (err) {
+        caught = err
+      }
+
+      expect(caught).toBeInstanceOf(CliError)
+      const cliError = caught as CliError
+      expect(cliError.code).toBe('NO_MEMORY')
+      expect(cliError.exit).toBe(EXIT.NO_MEMORY)
+      expect(cliError.payload['hint']).toBe('pm init')
+    } finally {
+      rmSync(dir, { recursive: true, force: true })
+    }
   })
 
   test('help --json exposes the command spec', () => {
@@ -69,10 +92,44 @@ describe('run', () => {
     expect(parsed.data.commands.map((c: { name: string }) => c.name)).toContain('context')
   })
 
-  test('an unexpected exception becomes an INTERNAL error, never a stack trace on stdout', () => {
+  test('a CliError thrown by a command never leaks a stack trace to stdout', () => {
     const io = fakeIo(['init'])
     const code = run(io)
     expect(io.outText().includes('at ')).toBe(false)
     expect(code).not.toBe(EXIT.OK)
+  })
+
+  test('an unexpected exception from a command becomes an INTERNAL error, never a stack trace on stdout', () => {
+    const key = '__boom__'
+    COMMANDS[key] = (_ctx): number => {
+      throw new Error('boom')
+    }
+    try {
+      const io = fakeIo([key])
+      const code = run(io)
+      expect(code).toBe(EXIT.USAGE)
+      expect(io.outText().includes('at ')).toBe(false)
+      expect(io.errText()).toContain('INTERNAL')
+    } finally {
+      delete COMMANDS[key]
+    }
+  })
+
+  test('an unexpected exception from a command becomes an INTERNAL error envelope in json mode', () => {
+    const key = '__boom__'
+    COMMANDS[key] = (_ctx): number => {
+      throw new Error('boom')
+    }
+    try {
+      const io = fakeIo([key, '--json'])
+      const code = run(io)
+      expect(code).toBe(EXIT.USAGE)
+      expect(io.outText().includes('at ')).toBe(false)
+      const parsed = JSON.parse(io.outText())
+      expect(parsed.ok).toBe(false)
+      expect(parsed.error.code).toBe('INTERNAL')
+    } finally {
+      delete COMMANDS[key]
+    }
   })
 })
