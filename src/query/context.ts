@@ -3,9 +3,10 @@ import { DEFAULT_MAX_TOKENS, MAX_SEEDS, SEED_RATIO } from '../domain/constants'
 import { scoreDocs } from '../domain/scoring'
 import { expand } from '../domain/graph'
 import {
+  contextBudgetTooSmallBlock,
   contextFooterBlock,
   contextHeadingBlock,
-  contextNoResultsBlock,
+  contextNoMatchesBlock,
   contextRelatedHeaderBlock,
   contextSectionHeaderBlock,
   estimateTokens,
@@ -48,7 +49,9 @@ export function buildContext(
   const scored = scoreDocs(index, query, scoreOpts)
 
   if (scored.length === 0) {
-    let used = headingCost + estimateTokens(contextNoResultsBlock(query))
+    // Genuinely nothing in the memory matches — the only case where "no
+    // business context found" is true.
+    let used = headingCost + estimateTokens(contextNoMatchesBlock(query))
     used += footerCost({ totalDocs, matched: 0, shown: 0, truncated: 0, estimatedTokens: used })
     return { query, totalDocs, matched: 0, shown: 0, truncated: 0, estimatedTokens: used, entries: [] }
   }
@@ -99,7 +102,10 @@ export function buildContext(
   }
 
   if (entries.length === 0) {
-    used += estimateTokens(contextNoResultsBlock(query))
+    // Reaching here means `scored.length > 0`, so `matched` (>= 1) is
+    // guaranteed: this is always the "budget too small" case, never
+    // "nothing matched" (that's the early return above).
+    used += estimateTokens(contextBudgetTooSmallBlock(query, matched))
   }
 
   const shown = entries.length

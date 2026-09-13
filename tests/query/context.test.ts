@@ -136,4 +136,22 @@ describe('buildContext', () => {
     const actual = estimateTokens(rendered)
     expect(Math.abs(r.estimatedTokens - actual)).toBeLessThanOrEqual(5)
   })
+
+  test('a budget too small to show anything is distinct from nothing matching', () => {
+    repo = makeRepo(
+      Array.from({ length: 8 }, (_, i) => ({
+        id: `rule-${i}`,
+        type: 'rule' as const,
+        title: 'Cancellation rule',
+        body: 'x'.repeat(2000),
+      })),
+    )
+    const r = buildContext(loadIndex(repo.memRoot), 'cancellation', { maxTokens: 30 })
+    expect(r.matched).toBeGreaterThan(0)
+    expect(r.shown).toBe(0)
+    const out = renderContext(r, new Date('2026-09-12T00:00:00Z'))
+    expect(out).not.toContain('No business context found')
+    expect(out).toContain('but none fit in the token budget')
+    expect(out).toContain(`${r.matched} matched · 0 shown`)
+  })
 })

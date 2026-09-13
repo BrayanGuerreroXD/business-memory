@@ -48,8 +48,18 @@ export function contextRelatedHeaderBlock(): string {
   return `## ${CONTEXT_RELATED_TITLE}\n\n`
 }
 
-export function contextNoResultsBlock(query: string): string {
+// Genuinely nothing in the memory matches the query — proceed and write a
+// note if something worth recording turns up.
+export function contextNoMatchesBlock(query: string): string {
   return `No business context found for "${query}".\nTry: pm list --type rule\n\n`
+}
+
+// Something matched, but the token budget was too small to show any of it.
+// This must never read like "nothing found": that reads as "there is no
+// business context for this" when there actually is some, and an agent that
+// believes that will plan without it and never think to ask again.
+export function contextBudgetTooSmallBlock(query: string, matched: number): string {
+  return `${matched} document(s) matched "${query}", but none fit in the token budget.\nRaise --max-tokens, or run \`pm search "${query}"\` to see what exists.\n\n`
 }
 
 export interface ContextFooterCounts {
