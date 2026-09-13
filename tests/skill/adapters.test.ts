@@ -1,5 +1,8 @@
 import { describe, expect, test } from 'bun:test'
+import { readFileSync } from 'node:fs'
+import { join } from 'node:path'
 import { claudeAdapter, agentsBlock, spliceBlock, BEGIN, END } from '../../src/skill/adapters'
+import { SKILL_MARKDOWN } from '../../src/skill/content'
 import { CliError, EXIT } from '../../src/cli/exit'
 
 const CANONICAL = '# project-memory protocol\n\nRun `pm context` before planning.\n'
@@ -116,5 +119,24 @@ describe('spliceBlock', () => {
       caught = err
     }
     expect((caught as CliError).message).toContain('AGENTS.md')
+  })
+})
+
+describe('the canonical protocol', () => {
+  test('tells the agent to link, tag and reference a new note', () => {
+    expect(SKILL_MARKDOWN).toContain('--links')
+    expect(SKILL_MARKDOWN).toContain('--tags')
+    expect(SKILL_MARKDOWN).toContain('--refs')
+    expect(SKILL_MARKDOWN).toContain('[[id]]')
+  })
+
+  test('names an update that actually changes something', () => {
+    expect(SKILL_MARKDOWN).toContain('pm update <id> --stub')
+    expect(SKILL_MARKDOWN).toContain('--status superseded --superseded-by')
+  })
+
+  test('the eval fixture SKILL.md is the canonical text, byte for byte', () => {
+    const fixture = join(import.meta.dir, '..', '..', 'eval', 'fixture', '.project-memory', 'SKILL.md')
+    expect(readFileSync(fixture, 'utf8')).toBe(SKILL_MARKDOWN)
   })
 })

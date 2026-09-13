@@ -8,7 +8,11 @@ command spec.
 
 1. Run \`pm context "<concept>"\` before planning any change to behaviour.
 2. **If the memory contradicts the code you are reading, stop.** Do not plan.
-   Report the contradiction and correct the note with \`pm update <id>\`.
+   Report the contradiction, then correct the note: \`pm update <id> --stub\`
+   prints the path, and you rewrite the body with your own file tools. If the
+   rule was replaced rather than corrected, supersede it instead:
+   \`pm update <id> --status superseded --superseded-by <new-id>\`.
+   A bare \`pm update <id>\` changes nothing.
 3. Plan respecting the rules that still stand.
 
 ## After implementing
@@ -28,10 +32,18 @@ filter is broken.
 To write one:
 
 \`\`\`
-pm add rule --title "..." --source "..." --stub   # prints the file path
+pm add rule --title "..." --source "..." --tags "billing" --refs "PolicyService.cancel" --links "dec-x,flow-y" --stub
 \`\`\`
 
-Then write the body with your own file tools and run \`pm validate\`.
+It prints the file path. Write the body with your own file tools, then run
+\`pm validate\`.
+
+**Connect it.** \`pm context\` expands one hop through \`links\`, so a note that
+links to nothing is found only by literal text match. Always pass \`--links\`
+with the documents the note relates to — the decision behind a rule, the flow
+it constrains, the feature that introduced it — and write \`[[id]]\` in the body
+for links you discover while writing. Pass \`--tags\` for the business area and
+\`--refs\` for the code symbols it governs.
 
 \`--source\` is mandatory for rules and decisions: a ticket, a conversation, a
 spec, or an explicit decision. **If the only source is your own reading of the
