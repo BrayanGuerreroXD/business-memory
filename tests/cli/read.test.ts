@@ -258,3 +258,57 @@ describe('pm index', () => {
     expect(parsed.data.mode).toBe('force')
   })
 })
+
+describe('a boolean flag never swallows a positional', () => {
+  test('pm show --json <id> answers on stdout with the envelope', () => {
+    repo = makeRepo(FIXTURE)
+    const i = io(repo.root, ['show', '--json', 'rule-open-claims-restriction'])
+    expect(run(i)).toBe(EXIT.OK)
+    const parsed = JSON.parse(i.outText())
+    expect(parsed.ok).toBe(true)
+    expect(parsed.data.docs[0].id).toBe('rule-open-claims-restriction')
+  })
+
+  test('pm show --json <id> <id> keeps both ids', () => {
+    repo = makeRepo(FIXTURE)
+    const i = io(repo.root, ['show', 'rule-open-claims-restriction', '--json', 'dec-domain-validation'])
+    expect(run(i)).toBe(EXIT.OK)
+    const parsed = JSON.parse(i.outText())
+    expect(parsed.data.docs.map((d: { id: string }) => d.id)).toEqual([
+      'rule-open-claims-restriction',
+      'dec-domain-validation',
+    ])
+  })
+
+  test('pm show --json for a missing id still answers on stdout, never empty', () => {
+    repo = makeRepo(FIXTURE)
+    const i = io(repo.root, ['show', '--json', 'rule-x'])
+    expect(run(i)).toBe(EXIT.NOT_FOUND)
+    expect(i.outText().length).toBeGreaterThan(0)
+    const parsed = JSON.parse(i.outText())
+    expect(parsed.ok).toBe(false)
+    expect(parsed.error.code).toBe('NOT_FOUND')
+  })
+
+  test('pm context --json <query> keeps the query', () => {
+    repo = makeRepo(FIXTURE)
+    const i = io(repo.root, ['context', '--json', 'cancellation'])
+    expect(run(i)).toBe(EXIT.OK)
+    const parsed = JSON.parse(i.outText())
+    expect(parsed.data.query).toBe('cancellation')
+  })
+
+  test('pm context --no-expand before the query still drops the graph', () => {
+    repo = makeRepo(FIXTURE)
+    const i = io(repo.root, ['context', '--no-expand', 'cancellation'])
+    expect(run(i)).toBe(EXIT.OK)
+    expect(i.outText()).not.toContain('flow-policy-cancellation')
+  })
+
+  test('pm path --json <id> keeps the id', () => {
+    repo = makeRepo(FIXTURE)
+    const i = io(repo.root, ['path', '--json', 'rule-open-claims-restriction'])
+    expect(run(i)).toBe(EXIT.OK)
+    expect(JSON.parse(i.outText()).data.id).toBe('rule-open-claims-restriction')
+  })
+})

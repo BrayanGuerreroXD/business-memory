@@ -110,3 +110,27 @@ describe('pm add', () => {
     expect(run(io(repo.root, ['add', 'rule', '--title', '!!!', '--source', 's', '--stub']))).toBe(EXIT.USAGE)
   })
 })
+
+describe('pm add with a boolean flag before the type', () => {
+  test('--stub before the type still creates the document', () => {
+    repo = makeRepo([])
+    const i = io(repo.root, ['add', '--stub', 'rule', '--title', 'Open claims restriction', '--source', 'ops meeting'])
+    expect(run(i)).toBe(EXIT.OK)
+    expect(existsSync(join(repo.memRoot, 'rules/rule-open-claims-restriction.md'))).toBe(true)
+  })
+
+  test('--force between the type and the flags is not consumed as a value', () => {
+    repo = makeRepo([{ id: 'rule-payment-method-persistence', type: 'rule', title: 'Payment method persistence' }])
+    const i = io(repo.root, ['add', 'rule', '--force', '--title', 'Payment method persistence', '--source', 's', '--stub'])
+    expect(run(i)).toBe(EXIT.OK)
+  })
+
+  test('--json before the type returns the envelope on stdout', () => {
+    repo = makeRepo([])
+    const i = io(repo.root, ['add', '--json', 'rule', '--title', 'Refund window', '--source', 'ticket 1', '--stub'])
+    expect(run(i)).toBe(EXIT.OK)
+    const parsed = JSON.parse(i.outText())
+    expect(parsed.ok).toBe(true)
+    expect(parsed.data.id).toBe('rule-refund-window')
+  })
+})
