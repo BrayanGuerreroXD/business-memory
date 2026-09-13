@@ -1,7 +1,7 @@
 export type SkillTarget = 'claude' | 'agents'
 
-export const BEGIN = '<!-- BEGIN project-memory -->'
-export const END = '<!-- END project-memory -->'
+export const BEGIN = '<!-- BEGIN business-memory -->'
+export const END = '<!-- END business-memory -->'
 
 const DESCRIPTION =
   'Use before planning any change to behaviour, and after implementing one, to read and record this repository business knowledge via the pm CLI.'
@@ -9,13 +9,13 @@ const DESCRIPTION =
 export function claudeAdapter(canonical: string): { path: string; content: string } {
   const frontmatter = [
     '---',
-    'name: project-memory',
+    'name: business-memory',
     `description: ${JSON.stringify(DESCRIPTION)}`,
     '---',
     '',
   ].join('\n')
   return {
-    path: '.claude/skills/project-memory/SKILL.md',
+    path: '.claude/skills/business-memory/SKILL.md',
     content: `${frontmatter}\n${canonical.replace(/\r\n/g, '\n').trim()}\n`,
   }
 }

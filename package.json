@@ -7,10 +7,10 @@
   "author": "Brayan Stewart Guerrero Ordoñez",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/BrayanGuerreroXD/project-memory.git"
+    "url": "git+https://github.com/BrayanGuerreroXD/business-memory.git"
   },
-  "homepage": "https://github.com/BrayanGuerreroXD/project-memory#readme",
-  "bugs": { "url": "https://github.com/BrayanGuerreroXD/project-memory/issues" },
+  "homepage": "https://github.com/BrayanGuerreroXD/business-memory#readme",
+  "bugs": { "url": "https://github.com/BrayanGuerreroXD/business-memory/issues" },
   "keywords": [
     "ai-agents",
     "business-rules",

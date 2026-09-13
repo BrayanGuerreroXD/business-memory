@@ -13,7 +13,7 @@ export function indexPath(memRoot: string): string {
 
 function fallbackPath(memRoot: string): string {
   const key = createHash('sha256').update(memRoot).digest('hex').slice(0, 16)
-  return join(tmpdir(), 'project-memory-cache', key, INDEX_FILE)
+  return join(tmpdir(), 'business-memory-cache', key, INDEX_FILE)
 }
 
 /** Null when the cache is missing, unreadable, corrupt or of another version. */

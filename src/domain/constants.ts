@@ -28,7 +28,7 @@ export const SIMILAR_THRESHOLD = 0.45
 export const AGE_WARN_MONTHS = 12
 export const SLUG_MAX = 60
 
-export const MEMORY_DIR = '.project-memory'
+export const MEMORY_DIR = '.business-memory'
 export const INDEX_FILE = 'index.json'
 export const SKILL_FILE = 'SKILL.md'
 export const INDEX_VERSION = 1

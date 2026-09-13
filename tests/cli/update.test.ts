@@ -87,6 +87,6 @@ describe('pm update prints a POSIX path, like pm add', () => {
     expect(run(i)).toBe(EXIT.OK)
     const line = i.outText().trim()
     expect(line.includes(BACKSLASH)).toBe(false)
-    expect(line.endsWith('.project-memory/rules/rule-a.md')).toBe(true)
+    expect(line.endsWith('.business-memory/rules/rule-a.md')).toBe(true)
   })
 })

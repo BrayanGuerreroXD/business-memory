@@ -394,7 +394,7 @@ describe('printed paths are POSIX everywhere', () => {
     expect(run(i)).toBe(EXIT.OK)
     const line = i.outText().trim()
     expect(line.includes(BACKSLASH)).toBe(false)
-    expect(line.endsWith('.project-memory/rules/rule-open-claims-restriction.md')).toBe(true)
+    expect(line.endsWith('.business-memory/rules/rule-open-claims-restriction.md')).toBe(true)
   })
 
   test('pm path --json reports the absolute path in POSIX form too', () => {

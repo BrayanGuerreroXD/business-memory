@@ -36,7 +36,7 @@ describe('renderError', () => {
   })
 
   test('omits the optional lines when absent', () => {
-    const out = renderError({ code: 'NO_MEMORY', message: 'no .project-memory directory found' })
+    const out = renderError({ code: 'NO_MEMORY', message: 'no .business-memory directory found' })
     expect(out).not.toContain('did you mean')
     expect(out).not.toContain('hint:')
   })

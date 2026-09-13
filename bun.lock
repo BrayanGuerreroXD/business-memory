@@ -3,7 +3,7 @@
   "configVersion": 1,
   "workspaces": {
     "": {
-      "name": "project-memory",
+      "name": "business-memory",
       "devDependencies": {
         "@types/node": "^22.0.0",
         "bun-types": "latest",

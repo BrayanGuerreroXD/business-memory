@@ -48,7 +48,7 @@ export function skillCommand(ctx: Ctx): number {
         'CONFLICT',
         `${label} has ${spliced.beginCount} '${BEGIN}' marker(s) and ${spliced.endCount} '${END}' marker(s); expected exactly one of each, BEGIN before END`,
         EXIT.CONFLICT,
-        { hint: `remove the stray project-memory markers from ${label}, or edit the existing block by hand` },
+        { hint: `remove the stray business-memory markers from ${label}, or edit the existing block by hand` },
       )
     }
     atomicWrite(abs, spliced.text)
