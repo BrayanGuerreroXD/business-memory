@@ -1,7 +1,10 @@
 import { readFileSync, readdirSync, statSync } from 'node:fs'
 import { join } from 'node:path'
 
-const FORBIDDEN = /\bBun\.(file|write|serve|spawn|\$)\b/
+// `Bun.$` is normally followed by a backtick (`Bun.$\`cmd\``) or `(`, neither
+// of which is a word character, so a trailing `\b` never matches after `$`.
+// Give `$` its own boundary-free branch instead of folding it into the group.
+const FORBIDDEN = /\bBun\.(file|write|serve|spawn)\b|\bBun\.\$/
 
 function walk(dir: string): string[] {
   const out: string[] = []

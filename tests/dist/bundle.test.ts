@@ -24,7 +24,7 @@ describe('bundle', () => {
 
   test('contains no Bun-only API', () => {
     const text = readFileSync(BIN, 'utf8')
-    expect(/\bBun\.(file|write|serve|\$)\b/.test(text)).toBe(false)
+    expect(/\bBun\.(file|write|serve)\b|\bBun\.\$/.test(text)).toBe(false)
   })
 
   test('runs under plain node and prints help', () => {
