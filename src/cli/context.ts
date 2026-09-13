@@ -19,6 +19,11 @@ export interface Ctx {
   int(name: string, fallback: number): number
 }
 
+const CACHE_WARNING: Record<'tmp' | 'memory', string> = {
+  tmp: 'index cache is not writable under .project-memory; using a copy in the system temp directory',
+  memory: 'index cache could not be written; the index was rebuilt in memory for this run',
+}
+
 export function makeCtx(io: Io, args: ParsedArgs): Ctx {
   const json = args.flags['json'] === true
   let cachedRoot: string | null = null
@@ -51,7 +56,14 @@ export function makeCtx(io: Io, args: ParsedArgs): Ctx {
     requireRoot,
     memRoot: () => memoryRoot(requireRoot()),
     requireIndex: () => {
-      if (cachedIndex === null) cachedIndex = loadIndex(memoryRoot(requireRoot()))
+      if (cachedIndex === null) {
+        cachedIndex = loadIndex(memoryRoot(requireRoot()))
+        // A degraded cache still answers correctly, so the command carries on;
+        // the warning goes to stderr, never to stdout or the --json envelope.
+        if (cachedIndex.storage !== 'disk') {
+          io.stderr(`warning: ${CACHE_WARNING[cachedIndex.storage]}\n`)
+        }
+      }
       return cachedIndex
     },
     flag,

@@ -312,3 +312,39 @@ describe('a boolean flag never swallows a positional', () => {
     expect(JSON.parse(i.outText()).data.id).toBe('rule-open-claims-restriction')
   })
 })
+
+describe('a degraded index cache', () => {
+  function blockCache(memRoot: string): void {
+    // A directory where index.json belongs makes every write to the primary
+    // cache fail, which is what a read-only checkout looks like from here.
+    require('node:fs').mkdirSync(join(memRoot, 'index.json'), { recursive: true })
+  }
+
+  test('pm list still answers, and warns on stderr only', () => {
+    repo = makeRepo(FIXTURE)
+    blockCache(repo.memRoot)
+    const i = io(repo.root, ['list'])
+    expect(run(i)).toBe(EXIT.OK)
+    expect(i.outText()).toContain('rule-open-claims-restriction')
+    expect(i.errText()).toContain('warning:')
+    expect(i.errText()).toContain('index cache')
+    expect(i.outText()).not.toContain('warning:')
+  })
+
+  test('pm show --json keeps the envelope clean and warns on stderr', () => {
+    repo = makeRepo(FIXTURE)
+    blockCache(repo.memRoot)
+    const i = io(repo.root, ['show', '--json', 'rule-open-claims-restriction'])
+    expect(run(i)).toBe(EXIT.OK)
+    const parsed = JSON.parse(i.outText())
+    expect(parsed.ok).toBe(true)
+    expect(i.errText()).toContain('warning:')
+  })
+
+  test('a healthy cache warns about nothing', () => {
+    repo = makeRepo(FIXTURE)
+    const i = io(repo.root, ['list'])
+    expect(run(i)).toBe(EXIT.OK)
+    expect(i.errText()).toBe('')
+  })
+})
