@@ -47,7 +47,7 @@ describe('loadIndex', () => {
 
   test('rebuilds when the cache version is unknown', () => {
     repo = makeRepo([{ id: 'rule-a', type: 'rule' }])
-    writeFileSync(indexPath(repo.memRoot), JSON.stringify({ version: 99, root: '.project-memory', docs: {} }), 'utf8')
+    writeFileSync(indexPath(repo.memRoot), JSON.stringify({ version: 99, root: '.business-memory', docs: {} }), 'utf8')
     const idx = loadIndex(repo.memRoot)
     expect(Object.keys(idx.file.docs)).toEqual(['rule-a'])
   })

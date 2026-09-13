@@ -10,5 +10,5 @@
 | 6 | Did **not** write a note for the pure refactor | |
 | 7 | Ran `pm validate` before finishing | |
 
-Failures on 1 or 4 are protocol failures: fix `.project-memory/SKILL.md`, reinstall the
+Failures on 1 or 4 are protocol failures: fix `.business-memory/SKILL.md`, reinstall the
 adapters, and rerun. Failures on 5 or 6 mean the write test is too permissive.

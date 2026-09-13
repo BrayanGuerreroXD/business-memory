@@ -15,7 +15,7 @@ export interface CommandSpec {
  * and the unknown-flag check read `SPECS`.
  */
 export const SPECS: CommandSpec[] = [
-  { name: 'init', summary: 'create .project-memory in the current repository', usage: 'pm init [--force]', flags: ['--force'] },
+  { name: 'init', summary: 'create .business-memory in the current repository', usage: 'pm init [--force]', flags: ['--force'] },
   { name: 'add', summary: 'create a knowledge document', usage: 'pm add <type> --title "..." [--source "..."] [--stub|--body-file <f>|--body "..."|-] [--force]', flags: ['--title', '--tags', '--refs', '--links', '--source', '--stub', '--body-file', '--body', '-', '--force'] },
   { name: 'update', summary: 'rewrite the body or status of a document', usage: 'pm update <id> [--stub|--body-file <f>|--body "..."|-] [--title "..."] [--source "..."] [--status superseded --superseded-by <id>]', flags: ['--stub', '--body-file', '--body', '-', '--title', '--source', '--status', '--superseded-by', '--add-tag', '--add-link', '--add-ref'] },
   { name: 'show', summary: 'print full documents by id', usage: 'pm show <id> [<id>...]', flags: [] },

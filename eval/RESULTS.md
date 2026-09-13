@@ -16,7 +16,7 @@ fabricating a result would defeat the entire purpose of the eval.
 1. Copy `eval/fixture/` to a scratch location (or use it in place) as the
    agent's working directory.
 2. Run `pm skill install --target <agent>` there so the agent's protocol
-   adapter is actually installed (`.claude/skills/project-memory/SKILL.md`
+   adapter is actually installed (`.claude/skills/business-memory/SKILL.md`
    for Claude, the `AGENTS.md` block for Codex/OpenCode).
 3. Give the agent the exact contents of `eval/TASK.md` as its task, with no
    further hints.

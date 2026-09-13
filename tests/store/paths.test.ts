@@ -30,13 +30,13 @@ describe('docRelPath', () => {
 describe('findRoot', () => {
   test('finds the memory directory in the current directory', () => {
     const root = tmp()
-    mkdirSync(join(root, '.project-memory'))
+    mkdirSync(join(root, '.business-memory'))
     expect(findRoot(root, {})).toBe(root)
   })
 
   test('walks up from a nested directory', () => {
     const root = tmp()
-    mkdirSync(join(root, '.project-memory'))
+    mkdirSync(join(root, '.business-memory'))
     const nested = join(root, 'src', 'deep')
     mkdirSync(nested, { recursive: true })
     expect(findRoot(nested, {})).toBe(root)
@@ -44,7 +44,7 @@ describe('findRoot', () => {
 
   test('stops at the directory containing .git', () => {
     const outer = tmp()
-    mkdirSync(join(outer, '.project-memory'))
+    mkdirSync(join(outer, '.business-memory'))
     const inner = join(outer, 'subrepo')
     mkdirSync(join(inner, '.git'), { recursive: true })
     expect(findRoot(inner, {})).toBeNull()
@@ -53,13 +53,13 @@ describe('findRoot', () => {
   test('the git boundary still allows a memory dir at the boundary itself', () => {
     const root = tmp()
     mkdirSync(join(root, '.git'))
-    mkdirSync(join(root, '.project-memory'))
+    mkdirSync(join(root, '.business-memory'))
     expect(findRoot(root, {})).toBe(root)
   })
 
   test('PM_ROOT overrides the search', () => {
     const root = tmp()
-    mkdirSync(join(root, '.project-memory'))
+    mkdirSync(join(root, '.business-memory'))
     const elsewhere = tmp()
     expect(findRoot(elsewhere, { PM_ROOT: root })).toBe(root)
   })
@@ -76,6 +76,6 @@ describe('findRoot', () => {
 
 describe('memoryRoot', () => {
   test('appends the memory directory', () => {
-    expect(memoryRoot(join('a', 'b'))).toBe(join('a', 'b', '.project-memory'))
+    expect(memoryRoot(join('a', 'b'))).toBe(join('a', 'b', '.business-memory'))
   })
 })

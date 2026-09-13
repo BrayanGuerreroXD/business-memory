@@ -37,7 +37,7 @@ describe('full agent workflow', () => {
     expect(added.code).toBe(0)
     const rel = JSON.parse(added.out).data.path as string
 
-    const abs = join(d, '.project-memory', ...rel.split('/'))
+    const abs = join(d, '.business-memory', ...rel.split('/'))
     writeFileSync(abs, `${readFileSync(abs, 'utf8').trimEnd()}\n\nA policy with an open claim cannot be manually cancelled.\n`, 'utf8')
 
     const ctx = pm(d, ['context', 'cancellation'])
@@ -79,7 +79,7 @@ describe('full agent workflow', () => {
     const ctx = pm(d, ['context', 'cancellation'])
     expect(ctx.out).toContain('New text.')
     expect(ctx.out).not.toContain('Old text.')
-    expect(existsSync(join(d, '.project-memory', 'rules', 'rule-old-cancellation-rule.md'))).toBe(true)
+    expect(existsSync(join(d, '.business-memory', 'rules', 'rule-old-cancellation-rule.md'))).toBe(true)
   })
 
   test('works from a nested subdirectory', () => {
@@ -103,7 +103,7 @@ describe('full agent workflow', () => {
     const d = repo()
     pm(d, ['init'])
     pm(d, ['add', 'rule', '--title', 'Tracked rule', '--source', 's', '--stub'])
-    expect(readFileSync(join(d, '.project-memory', '.gitignore'), 'utf8')).toContain('index.json')
+    expect(readFileSync(join(d, '.business-memory', '.gitignore'), 'utf8')).toContain('index.json')
   })
 
   test('no generated file contains CRLF', () => {
@@ -111,7 +111,7 @@ describe('full agent workflow', () => {
     pm(d, ['init'])
     pm(d, ['add', 'rule', '--title', 'Line endings', '--source', 's', '--stub'])
     for (const f of ['SKILL.md', '.gitattributes', 'rules/rule-line-endings.md']) {
-      expect(readFileSync(join(d, '.project-memory', ...f.split('/')), 'utf8')).not.toContain('\r')
+      expect(readFileSync(join(d, '.business-memory', ...f.split('/')), 'utf8')).not.toContain('\r')
     }
   })
 })

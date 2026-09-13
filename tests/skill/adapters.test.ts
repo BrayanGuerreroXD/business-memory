@@ -4,17 +4,17 @@ import { join } from 'node:path'
 import { claudeAdapter, agentsBlock, spliceBlock, BEGIN, END } from '../../src/skill/adapters'
 import { SKILL_MARKDOWN } from '../../src/skill/content'
 
-const CANONICAL = '# project-memory protocol\n\nRun `pm context` before planning.\n'
+const CANONICAL = '# business-memory protocol\n\nRun `pm context` before planning.\n'
 
 describe('claudeAdapter', () => {
   test('targets the claude skills path', () => {
-    expect(claudeAdapter(CANONICAL).path).toBe('.claude/skills/project-memory/SKILL.md')
+    expect(claudeAdapter(CANONICAL).path).toBe('.claude/skills/business-memory/SKILL.md')
   })
 
   test('prepends frontmatter with a name and a description', () => {
     const { content } = claudeAdapter(CANONICAL)
     expect(content.startsWith('---\n')).toBe(true)
-    expect(content).toContain('name: project-memory')
+    expect(content).toContain('name: business-memory')
     expect(content).toContain('description:')
   })
 
@@ -74,7 +74,7 @@ describe('spliceBlock', () => {
     const withExample = [
       '# Mine',
       '',
-      'Our AGENTS.md integrates project-memory like so:',
+      'Our AGENTS.md integrates business-memory like so:',
       '',
       '```',
       BEGIN,
@@ -132,7 +132,7 @@ describe('the canonical protocol', () => {
   })
 
   test('the eval fixture SKILL.md is the canonical text, byte for byte', () => {
-    const fixture = join(import.meta.dir, '..', '..', 'eval', 'fixture', '.project-memory', 'SKILL.md')
+    const fixture = join(import.meta.dir, '..', '..', 'eval', 'fixture', '.business-memory', 'SKILL.md')
     expect(readFileSync(fixture, 'utf8')).toBe(SKILL_MARKDOWN)
   })
 })

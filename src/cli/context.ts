@@ -20,7 +20,7 @@ export interface Ctx {
 }
 
 const CACHE_WARNING: Record<'tmp' | 'memory', string> = {
-  tmp: 'index cache is not writable under .project-memory; using a copy in the system temp directory',
+  tmp: 'index cache is not writable under .business-memory; using a copy in the system temp directory',
   memory: 'index cache could not be written; the index was rebuilt in memory for this run',
 }
 
@@ -40,7 +40,7 @@ export function makeCtx(io: Io, args: ParsedArgs): Ctx {
     const base = override === null ? io.cwd : join(io.cwd, override)
     const found = findRoot(base, io.env)
     if (found === null) {
-      throw new CliError('NO_MEMORY', 'no .project-memory directory found', EXIT.NO_MEMORY, {
+      throw new CliError('NO_MEMORY', 'no .business-memory directory found', EXIT.NO_MEMORY, {
         hint: 'pm init',
       })
     }

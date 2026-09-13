@@ -26,18 +26,18 @@ function io(cwd: string, argv: string[]): Io & { outText: () => string; errText:
 describe('pm skill install', () => {
   test('--target claude writes the skill file', () => {
     repo = makeRepo([])
-    writeFileSync(join(repo.memRoot, 'SKILL.md'), '# project-memory protocol\n\nRun pm context.\n')
+    writeFileSync(join(repo.memRoot, 'SKILL.md'), '# business-memory protocol\n\nRun pm context.\n')
     expect(run(io(repo.root, ['skill', 'install', '--target', 'claude']))).toBe(EXIT.OK)
-    const p = join(repo.root, '.claude', 'skills', 'project-memory', 'SKILL.md')
+    const p = join(repo.root, '.claude', 'skills', 'business-memory', 'SKILL.md')
     expect(existsSync(p)).toBe(true)
-    expect(readFileSync(p, 'utf8')).toContain('name: project-memory')
+    expect(readFileSync(p, 'utf8')).toContain('name: business-memory')
   })
 
   test('--target agents creates AGENTS.md with a delimited block', () => {
     repo = makeRepo([])
     writeFileSync(join(repo.memRoot, 'SKILL.md'), '# protocol\n')
     run(io(repo.root, ['skill', 'install', '--target', 'agents']))
-    expect(readFileSync(join(repo.root, 'AGENTS.md'), 'utf8')).toContain('BEGIN project-memory')
+    expect(readFileSync(join(repo.root, 'AGENTS.md'), 'utf8')).toContain('BEGIN business-memory')
   })
 
   test('a second run preserves the user content in AGENTS.md', () => {
@@ -48,7 +48,7 @@ describe('pm skill install', () => {
     run(io(repo.root, ['skill', 'install', '--target', 'agents']))
     const text = readFileSync(join(repo.root, 'AGENTS.md'), 'utf8')
     expect(text).toContain('Always run the linter.')
-    expect(text.match(/BEGIN project-memory/g)?.length).toBe(1)
+    expect(text.match(/BEGIN business-memory/g)?.length).toBe(1)
   })
 
   test('falls back to the built-in protocol when SKILL.md is absent', () => {
@@ -73,7 +73,7 @@ describe('pm skill install', () => {
     repo = makeRepo([])
     const i = io(repo.root, ['skill', 'install', '--target', 'claude', '--json'])
     expect(run(i)).toBe(EXIT.OK)
-    expect(JSON.parse(i.outText()).data.written).toContain('.claude/skills/project-memory/SKILL.md')
+    expect(JSON.parse(i.outText()).data.written).toContain('.claude/skills/business-memory/SKILL.md')
   })
 
   test('refuses to touch AGENTS.md when a marker appears inside a documented example, leaving it byte-for-byte unchanged', () => {
