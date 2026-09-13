@@ -1,0 +1,26 @@
+// Bun Snapshot v1, https://bun.sh/docs/test/snapshots
+
+exports[`context snapshot output is stable for a fixed corpus 1`] = `
+"# Business context: policy cancellation
+
+## Rules
+
+### rule-open-claims-restriction — Open claims restriction
+A policy with an open claim cannot be manually cancelled.
+
+### rule-refund-on-cancel — Refund on cancellation
+Cancelling within 30 days refunds the unused premium.
+
+## Decisions
+
+### dec-domain-validation — Domain validation
+Cancellation validation belongs to the domain layer.
+
+## Related — run \`pm show <id>\` for the body
+
+- feature-431-policy-cancellation — Feature 431: policy cancellation
+- flow-policy-cancellation — Policy cancellation flow
+
+6 docs · 5 matched · 5 shown · 0 truncated · ~158 tokens
+"
+`;
