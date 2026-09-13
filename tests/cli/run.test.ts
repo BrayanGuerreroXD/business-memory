@@ -93,12 +93,18 @@ describe('run', () => {
   })
 
   test('a CliError thrown by a command never leaks a stack trace to stdout', () => {
-    // 'validate' is still a stub (Task 16); this only needs any command that
-    // throws a CliError. 'init' no longer qualifies now that Task 13 implements it.
-    const io = fakeIo(['validate'])
-    const code = run(io)
-    expect(io.outText().includes('at ')).toBe(false)
-    expect(code).not.toBe(EXIT.OK)
+    const key = '__cli_error__'
+    COMMANDS[key] = (_ctx): number => {
+      throw new CliError('VALIDATION_FAILED', 'boom', EXIT.INVALID)
+    }
+    try {
+      const io = fakeIo([key])
+      const code = run(io)
+      expect(code).toBe(EXIT.INVALID)
+      expect(io.outText().includes('at ')).toBe(false)
+    } finally {
+      delete COMMANDS[key]
+    }
   })
 
   test('an unexpected exception from a command becomes an INTERNAL error, never a stack trace on stdout', () => {
