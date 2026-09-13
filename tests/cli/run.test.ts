@@ -93,7 +93,9 @@ describe('run', () => {
   })
 
   test('a CliError thrown by a command never leaks a stack trace to stdout', () => {
-    const io = fakeIo(['init'])
+    // 'validate' is still a stub (Task 16); this only needs any command that
+    // throws a CliError. 'init' no longer qualifies now that Task 13 implements it.
+    const io = fakeIo(['validate'])
     const code = run(io)
     expect(io.outText().includes('at ')).toBe(false)
     expect(code).not.toBe(EXIT.OK)
