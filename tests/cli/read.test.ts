@@ -348,3 +348,25 @@ describe('a degraded index cache', () => {
     expect(i.errText()).toBe('')
   })
 })
+
+const BACKSLASH = String.fromCharCode(92)
+
+describe('printed paths are POSIX everywhere', () => {
+  test('pm path prints forward slashes and no backslash', () => {
+    repo = makeRepo(FIXTURE)
+    const i = io(repo.root, ['path', 'rule-open-claims-restriction'])
+    expect(run(i)).toBe(EXIT.OK)
+    const line = i.outText().trim()
+    expect(line.includes(BACKSLASH)).toBe(false)
+    expect(line.endsWith('.project-memory/rules/rule-open-claims-restriction.md')).toBe(true)
+  })
+
+  test('pm path --json reports the absolute path in POSIX form too', () => {
+    repo = makeRepo(FIXTURE)
+    const i = io(repo.root, ['path', '--json', 'rule-open-claims-restriction'])
+    run(i)
+    const parsed = JSON.parse(i.outText())
+    expect(parsed.data.absolute.includes(BACKSLASH)).toBe(false)
+    expect(parsed.data.path).toBe('rules/rule-open-claims-restriction.md')
+  })
+})

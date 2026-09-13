@@ -6,6 +6,7 @@ import type { Frontmatter } from '../../domain/types'
 import { isDocStatus } from '../../domain/types'
 import { parseYamlSubset, serializeDoc, splitFrontmatter, validateFrontmatter } from '../../domain/frontmatter'
 import { atomicWrite, readText } from '../../store/fs'
+import { toPosix } from '../../store/paths'
 import { okEnvelope } from '../../render/json'
 import { didYouMean } from '../../render/error'
 
@@ -86,6 +87,6 @@ export function updateCommand(ctx: Ctx): number {
     ctx.out(okEnvelope({ id: fm.id, path: existing.path, status: fm.status }))
     return EXIT.OK
   }
-  ctx.out(`${abs}\n`)
+  ctx.out(`${toPosix(abs)}\n`)
   return EXIT.OK
 }

@@ -77,3 +77,16 @@ describe('pm update', () => {
     expect(i.errText()).toContain('did you mean: rule-open-claims-restriction')
   })
 })
+
+const BACKSLASH = String.fromCharCode(92)
+
+describe('pm update prints a POSIX path, like pm add', () => {
+  test('the printed path uses forward slashes', () => {
+    repo = makeRepo([{ id: 'rule-a', type: 'rule' }])
+    const i = io(repo.root, ['update', 'rule-a', '--stub'])
+    expect(run(i)).toBe(EXIT.OK)
+    const line = i.outText().trim()
+    expect(line.includes(BACKSLASH)).toBe(false)
+    expect(line.endsWith('.project-memory/rules/rule-a.md')).toBe(true)
+  })
+})

@@ -1,6 +1,7 @@
 import { join } from 'node:path'
 import type { Ctx } from '../context'
 import { CliError, EXIT } from '../exit'
+import { toPosix } from '../../store/paths'
 import { okEnvelope } from '../../render/json'
 import { didYouMean } from '../../render/error'
 
@@ -19,7 +20,7 @@ export function pathCommand(ctx: Ctx): number {
     throw new CliError('NOT_FOUND', `no doc with id '${id}'`, EXIT.NOT_FOUND, payload)
   }
 
-  const abs = join(ctx.memRoot(), doc.path)
+  const abs = toPosix(join(ctx.memRoot(), doc.path))
   ctx.out(ctx.json ? okEnvelope({ id, path: doc.path, absolute: abs }) : `${abs}\n`)
   return EXIT.OK
 }
