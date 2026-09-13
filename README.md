@@ -7,11 +7,16 @@ structured context.
 ## Install
 
 ```sh
-npm install -g project-memory
+npm install -g business-memory
 ```
 
 Requires Node.js 20 or later. No runtime dependencies — `pm` ships as a
 single bundled file.
+
+The project is `project-memory` and the memory directory it creates is
+`.project-memory/`; the npm package is `business-memory` because the shorter
+name was already taken on the registry by an unrelated tool. The command you
+run is `pm` either way.
 
 ## Quick start
 
