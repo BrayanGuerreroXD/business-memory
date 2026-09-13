@@ -1,6 +1,8 @@
 import { describe, expect, test, afterEach } from 'bun:test'
 import { buildContext } from '../../src/query/context'
 import { loadIndex } from '../../src/index/persist'
+import { renderContext } from '../../src/render/context'
+import { estimateTokens } from '../../src/domain/tokens'
 import { makeRepo, type Repo } from '../helpers/makeRepo'
 
 let repo: Repo | null = null
@@ -70,8 +72,13 @@ describe('buildContext', () => {
         body: 'x'.repeat(2000),
       })),
     )
-    const r = buildContext(loadIndex(repo.memRoot), 'cancellation', { maxTokens: 20 })
-    expect(r.estimatedTokens).toBeLessThanOrEqual(20)
+    // 20 tokens used to be enough to force truncation under the old cost
+    // model, but that model only priced entry bodies. Now that the fixed
+    // heading/footer overhead is budgeted too (Fix 1), anything under that
+    // frame's own floor can never show a single entry — 60 is comfortably
+    // above the floor while still being far too small for all 8 docs.
+    const r = buildContext(loadIndex(repo.memRoot), 'cancellation', { maxTokens: 60 })
+    expect(r.estimatedTokens).toBeLessThanOrEqual(60)
     expect(r.shown).toBeLessThan(r.matched)
     expect(r.truncated).toBe(r.matched - r.shown)
   })
@@ -111,5 +118,22 @@ describe('buildContext', () => {
     expect(r.matched).toBe(0)
     expect(r.truncated).toBe(0)
     expect(r.totalDocs).toBe(1)
+  })
+
+  test('estimatedTokens tracks the real cost of the rendered output', () => {
+    // Fix 1: the footer used to price only entry bodies and ignore the
+    // heading, section headers, the Related header and the footer itself —
+    // a ~37% undercount in the reported reviewer case. Rendering the actual
+    // result and re-measuring it is the only check that catches that drift.
+    repo = makeRepo([
+      { id: 'rule-a', type: 'rule', title: 'Cancellation restriction', links: ['dec-b'] },
+      { id: 'dec-b', type: 'decision', title: 'Layering choice' },
+      { id: 'flow-a', type: 'flow', title: 'Cancellation flow' },
+      { id: 'feature-a', type: 'feature', title: 'Cancellation feature' },
+    ])
+    const r = buildContext(loadIndex(repo.memRoot), 'cancellation')
+    const rendered = renderContext(r, new Date('2026-09-12T00:00:00Z'))
+    const actual = estimateTokens(rendered)
+    expect(Math.abs(r.estimatedTokens - actual)).toBeLessThanOrEqual(5)
   })
 })

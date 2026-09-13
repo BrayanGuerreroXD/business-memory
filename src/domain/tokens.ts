@@ -1,4 +1,5 @@
 import { AGE_WARN_MONTHS } from './constants'
+import type { DocType } from './types'
 
 export function estimateTokens(s: string): number {
   return Math.ceil(s.length / 4)
@@ -15,4 +16,50 @@ export function monthsBetween(created: string, now: Date): number {
 export function ageLabel(created: string, now: Date): string {
   const months = monthsBetween(created, now)
   return months >= AGE_WARN_MONTHS ? ` (${months} months old)` : ''
+}
+
+// --- pm context: shared structural overhead --------------------------------
+// `src/query/context.ts` budgets against these same blocks and
+// `src/render/context.ts` emits them verbatim, so the two can never drift
+// apart the way they did before (query counted only entry text; render also
+// prints a document heading, per-section headers, a "Related" header and a
+// footer line that were never budgeted).
+
+export const CONTEXT_SECTION_TITLE: Record<DocType, string> = {
+  rule: 'Rules',
+  decision: 'Decisions',
+  flow: 'Flows',
+  feature: 'Features',
+}
+
+export const CONTEXT_SECTION_ORDER: DocType[] = ['rule', 'decision', 'flow', 'feature']
+
+export const CONTEXT_RELATED_TITLE = 'Related — run `pm show <id>` for the body'
+
+export function contextHeadingBlock(query: string): string {
+  return `# Business context: ${query}\n\n`
+}
+
+export function contextSectionHeaderBlock(type: DocType): string {
+  return `## ${CONTEXT_SECTION_TITLE[type]}\n\n`
+}
+
+export function contextRelatedHeaderBlock(): string {
+  return `## ${CONTEXT_RELATED_TITLE}\n\n`
+}
+
+export function contextNoResultsBlock(query: string): string {
+  return `No business context found for "${query}".\nTry: pm list --type rule\n\n`
+}
+
+export interface ContextFooterCounts {
+  totalDocs: number
+  matched: number
+  shown: number
+  truncated: number
+  estimatedTokens: number
+}
+
+export function contextFooterBlock(c: ContextFooterCounts): string {
+  return `${c.totalDocs} docs · ${c.matched} matched · ${c.shown} shown · ${c.truncated} truncated · ~${c.estimatedTokens} tokens`
 }
