@@ -19,9 +19,12 @@ export function validateCommand(ctx: Ctx): number {
 
   if (ctx.json) {
     if (errors.length > 0) {
+      // Name a document from the findings so the hint runs as written; an error
+      // without an id is a file the indexer could not read, so point at the list.
+      const named = errors.find((f) => f.id !== null)?.id ?? null
       throw new CliError('VALIDATION_FAILED', `${errors.length} error(s)`, EXIT.INVALID, {
         findings,
-        hint: 'pm show <id>',
+        hint: named === null ? 'pm list --all' : `pm show ${named}`,
       })
     }
     ctx.out(okEnvelope({ errors: 0, warnings: warns.length, findings }))

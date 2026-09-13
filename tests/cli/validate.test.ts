@@ -96,3 +96,30 @@ describe('pm validate', () => {
     expect(i.outText()).toContain('Spanish')
   })
 })
+
+describe('the validate hint runs as written', () => {
+  test('--json names a document from the findings', () => {
+    repo = makeRepo([{ id: 'rule-a', type: 'rule', links: ['ghost'] }])
+    const i = io(repo.root, ['validate', '--json'])
+    expect(run(i)).toBe(EXIT.INVALID)
+    const hint = JSON.parse(i.outText()).error.hint
+    expect(hint).toBe('pm show rule-a')
+
+    const shown = io(repo.root, hint.split(' ').slice(1))
+    expect(run(shown)).toBe(EXIT.OK)
+    expect(shown.outText()).toContain('rule-a')
+  })
+
+  test('a finding with no id falls back to a command that still runs', () => {
+    repo = makeRepo([])
+    mkdirSync(join(repo.memRoot, 'rules'), { recursive: true })
+    writeFileSync(join(repo.memRoot, 'rules', 'broken.md'), '# no frontmatter\n')
+    const i = io(repo.root, ['validate', '--json'])
+    expect(run(i)).toBe(EXIT.INVALID)
+    const hint = JSON.parse(i.outText()).error.hint
+    expect(hint).toBe('pm list --all')
+
+    const listed = io(repo.root, hint.split(' ').slice(1))
+    expect(run(listed)).toBe(EXIT.OK)
+  })
+})
